@@ -1,0 +1,1509 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lebensplaner</title>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --bg-elevated: #ffffff;
+  --bg-sidebar: #1f2430;
+  --text: #1b1e26;
+  --text-muted: #6b7280;
+  --text-on-sidebar: #d7dbe4;
+  --text-on-sidebar-muted: #8a90a2;
+  --border: #e2e4e9;
+  --accent: #3d63dd;
+  --accent-contrast: #ffffff;
+  --danger: #d1453b;
+  --warn: #c98a1c;
+  --ok: #2f9e6e;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20,22,30,0.08), 0 1px 2px rgba(20,22,30,0.06);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161c;
+    --bg-elevated: #1c1f28;
+    --bg-sidebar: #10121a;
+    --text: #e7e9ee;
+    --text-muted: #9098a8;
+    --text-on-sidebar: #d7dbe4;
+    --text-on-sidebar-muted: #6d7488;
+    --border: #2b2f3a;
+    --accent: #6d8dfa;
+    --accent-contrast: #0d1220;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font-family: inherit; font-size: 14px; color: inherit; }
+a { color: var(--accent); }
+h1, h2, h3, h4 { margin: 0 0 8px 0; font-weight: 600; }
+p { margin: 0 0 8px 0; }
+.hidden { display: none !important; }
+
+/* ---------- Setup screen ---------- */
+#setup-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.setup-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+.setup-card h1 { font-size: 22px; }
+.setup-card .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 14px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.field .hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn.small { padding: 5px 10px; font-size: 12px; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.setup-error {
+  background: rgba(209,69,59,0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.setup-status { font-size: 13px; color: var(--text-muted); margin-top: 12px; }
+details.setup-help { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
+details.setup-help summary { cursor: pointer; font-weight: 600; color: var(--text); }
+details.setup-help ol { padding-left: 20px; margin: 8px 0; }
+details.setup-help code { background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+
+/* ---------- Main layout ---------- */
+#main-layout { display: flex; min-height: 100vh; }
+#sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  color: var(--text-on-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+}
+#sidebar .brand { font-weight: 700; font-size: 16px; padding: 0 10px 20px 10px; color: #fff; }
+#sidebar nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--text-on-sidebar-muted);
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: var(--text-on-sidebar); }
+.nav-item.active { background: var(--accent); color: #fff; }
+.nav-item .icon { width: 20px; text-align: center; }
+#sidebar .sync-box { padding: 10px; font-size: 12px; color: var(--text-on-sidebar-muted); border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px; }
+
+#content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+#topbar .title { font-size: 18px; font-weight: 700; }
+#topbar .sync-indicator { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.synced { background: var(--ok); }
+.dot.pending { background: var(--warn); }
+.dot.error { background: var(--danger); }
+.dot.loading { background: var(--text-muted); }
+
+#content { padding: 24px; max-width: 1100px; width: 100%; margin: 0 auto; flex: 1; }
+#bottom-nav { display: none; }
+
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+.card h3 { font-size: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.list li:last-child { border-bottom: none; }
+.list .meta { color: var(--text-muted); font-size: 12px; }
+.empty-hint { color: var(--text-muted); font-size: 13px; padding: 8px 0; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.badge.low { background: rgba(47,158,110,0.15); color: var(--ok); }
+.badge.medium { background: rgba(201,138,28,0.15); color: var(--warn); }
+.badge.high { background: rgba(209,69,59,0.15); color: var(--danger); }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-header h1 { font-size: 20px; }
+
+.form-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
+.form-inline .field { margin-bottom: 0; flex: 1; min-width: 120px; }
+
+.progress-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.progress-bar > div { height: 100%; background: var(--accent); }
+.progress-bar.over > div { background: var(--danger); }
+
+table.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.data-table th, table.data-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+table.data-table th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+table.data-table td.num { text-align: right; }
+.row-actions { display: flex; gap: 6px; }
+.icon-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 2px 4px; font-size: 14px; }
+.icon-btn:hover { color: var(--danger); }
+
+/* calendar */
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-daylabel { text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px 0; }
+.cal-cell {
+  min-height: 78px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--bg);
+}
+.cal-cell:hover { border-color: var(--accent); }
+.cal-cell.today { border-color: var(--accent); border-width: 2px; }
+.cal-cell.other-month { opacity: 0.4; }
+.cal-cell .daynum { font-weight: 700; margin-bottom: 2px; }
+.cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-event.deadline { background: var(--danger); }
+
+.habit-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.habit-row:last-child { border-bottom: none; }
+.habit-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--bg); }
+.habit-check.done { background: var(--ok); border-color: var(--ok); color: #fff; }
+.streak { font-size: 12px; color: var(--text-muted); }
+
+.toast-container { position: fixed; bottom: 16px; right: 16px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 8px; padding: 10px 14px; font-size: 13px; max-width: 320px; }
+.toast.error { border-color: var(--danger); color: var(--danger); }
+.toast.success { border-color: var(--ok); }
+
+textarea.journal-text { min-height: 100px; resize: vertical; }
+
+@media (max-width: 760px) {
+  #sidebar { display: none; }
+  #content { padding: 16px; padding-bottom: 84px; }
+  #topbar { padding: 12px 16px; }
+  #bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    z-index: 10;
+  }
+  #bottom-nav .nav-item {
+    flex-direction: column;
+    flex: 1;
+    min-width: 64px;
+    color: var(--text-muted);
+    font-size: 10px;
+    gap: 2px;
+    border-radius: 0;
+    padding: 8px 4px;
+    text-align: center;
+  }
+  #bottom-nav .nav-item.active { background: none; color: var(--accent); }
+  #bottom-nav .icon { font-size: 18px; }
+  .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="setup-screen" class="hidden">
+  <div class="setup-card">
+    <h1>Lebensplaner einrichten</h1>
+    <p class="subtitle">Verbinde die App mit deinem privaten GitHub-Repository. Alle Daten werden dort als JSON-Dateien gespeichert &ndash; es gibt kein eigenes Backend.</p>
+    <div id="setup-error" class="setup-error hidden"></div>
+    <form id="setup-form">
+      <div class="field-row">
+        <div class="field">
+          <label for="cfg-owner">GitHub-Benutzer/Organisation</label>
+          <input id="cfg-owner" type="text" placeholder="z. B. bene0812" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="cfg-repo">Repository</label>
+          <input id="cfg-repo" type="text" placeholder="z. B. lebensplaner-daten" required autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="cfg-branch">Branch</label>
+        <input id="cfg-branch" type="text" value="main" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="cfg-token">Personal Access Token</label>
+        <input id="cfg-token" type="password" placeholder="ghp_... oder github_pat_..." required autocomplete="off">
+        <div class="hint">Wird nur lokal in diesem Browser gespeichert (localStorage), niemals im Code oder Repo.</div>
+      </div>
+      <button type="submit" class="btn primary" id="setup-submit" style="width:100%; justify-content:center;">Verbinden &amp; testen</button>
+      <div id="setup-status" class="setup-status hidden"></div>
+    </form>
+    <details class="setup-help">
+      <summary>Wie erstelle ich einen passenden Token?</summary>
+      <ol>
+        <li>Lege ein privates GitHub-Repo an, das nur für deine Lebensplaner-Daten dient.</li>
+        <li>Gehe zu <code>github.com/settings/personal-access-tokens/new</code> (Fine-grained Token).</li>
+        <li>Beschränke den Zugriff auf genau dieses eine Repository.</li>
+        <li>Setze unter &bdquo;Repository permissions&ldquo; &rarr; <code>Contents</code> auf <b>Read and write</b>.</li>
+        <li>Erstelle den Token und f&uuml;ge ihn oben ein.</li>
+      </ol>
+    </details>
+  </div>
+</div>
+
+<div id="main-layout" class="hidden">
+  <aside id="sidebar">
+    <div class="brand">🧭 Lebensplaner</div>
+    <nav id="nav-list"></nav>
+    <div class="sync-box" id="sync-box-sidebar"></div>
+  </aside>
+  <div id="content-area">
+    <header id="topbar">
+      <div class="title" id="view-title">Dashboard</div>
+      <div class="sync-indicator" id="sync-indicator"><span class="dot loading"></span><span id="sync-text">Lade...</span></div>
+    </header>
+    <main id="content"></main>
+  </div>
+  <nav id="bottom-nav"></nav>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+(function () {
+"use strict";
+
+/* =========================================================================
+   CONFIG / CONSTANTS
+   ========================================================================= */
+const CONFIG_KEY = "lebensplaner:config";
+const SHA_KEY = "lebensplaner:shas";
+
+const MODULES = [
+  { key: "dashboard", label: "Dashboard", icon: "🏠" },
+  { key: "goals",     label: "Ziele & Vision", icon: "🎯", file: "data/goals.json" },
+  { key: "calendar",  label: "Kalender", icon: "📅", file: "data/calendar.json" },
+  { key: "tasks",     label: "Aufgaben & Projekte", icon: "✅", file: "data/tasks.json" },
+  { key: "habits",    label: "Gewohnheiten", icon: "🔁", file: "data/habits.json" },
+  { key: "finances",  label: "Finanzen", icon: "💰", file: "data/finances.json" },
+  { key: "journal",   label: "Journal & Reflexion", icon: "📓", file: "data/journal.json" },
+  { key: "learning",  label: "Lernen & Wachstum", icon: "📚", file: "data/learning.json" },
+  { key: "settings",  label: "Einstellungen", icon: "⚙️" },
+];
+const DATA_MODULES = MODULES.filter(m => m.file);
+
+const DEFAULTS = {
+  goals: {
+    lebensbereiche: [
+      { id: "bereich-karriere", name: "Karriere & Beruf", color: "#3d63dd" },
+      { id: "bereich-finanzen", name: "Finanzen", color: "#2f9e6e" },
+      { id: "bereich-entwicklung", name: "Persönliche Entwicklung", color: "#c98a1c" },
+      { id: "bereich-freizeit", name: "Freizeit & Hobbys", color: "#8b5cf6" },
+      { id: "bereich-wohnen", name: "Wohnen & Umfeld", color: "#d1453b" }
+    ],
+    goals: []
+  },
+  calendar: { events: [] },
+  tasks: {
+    projects: [{ id: "inbox", name: "Inbox", color: "#6b7280", archived: false }],
+    tasks: []
+  },
+  habits: { habits: [], checkins: {} },
+  finances: { budgets: [], expenses: [], savingsGoals: [] },
+  journal: { entries: [] },
+  learning: { books: [], courses: [], skills: [] }
+};
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+let CONFIG = null;
+let SHAS = {};
+let STATE = {};
+let currentView = "dashboard";
+const saveTimers = {};
+const moduleSyncState = {}; // key -> 'synced' | 'pending' | 'error' | 'loading'
+
+/* =========================================================================
+   UTILITIES
+   ========================================================================= */
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function todayISO() {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+function fmtMoney(n) {
+  const v = Number(n) || 0;
+  return v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function daysBetween(aISO, bISO) {
+  const a = new Date(aISO + "T00:00:00");
+  const b = new Date(bISO + "T00:00:00");
+  return Math.round((b - a) / 86400000);
+}
+function b64EncodeUnicode(str) {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode(parseInt(p1, 16))));
+}
+function b64DecodeUnicode(str) {
+  return decodeURIComponent(atob(str).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+}
+function toast(message, type = "info") {
+  const container = document.getElementById("toast-container");
+  const el = document.createElement("div");
+  el.className = "toast" + (type === "error" ? " error" : type === "success" ? " success" : "");
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+/* =========================================================================
+   GITHUB API CLIENT
+   ========================================================================= */
+async function ghRequest(path, options = {}) {
+  const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}${path}`;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      "Authorization": `Bearer ${CONFIG.token}`,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(options.headers || {})
+    }
+  });
+  return res;
+}
+
+async function ghGetFile(filePath) {
+  const res = await ghRequest(`/contents/${filePath}?ref=${encodeURIComponent(CONFIG.branch)}`);
+  if (res.status === 404) return { data: null, sha: null };
+  if (!res.ok) throw await ghError(res);
+  const body = await res.json();
+  const json = JSON.parse(b64DecodeUnicode(body.content.replace(/\n/g, "")));
+  return { data: json, sha: body.sha };
+}
+
+async function ghPutFile(filePath, dataObj, sha, message) {
+  const content = b64EncodeUnicode(JSON.stringify(dataObj, null, 2));
+  const res = await ghRequest(`/contents/${filePath}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message,
+      content,
+      branch: CONFIG.branch,
+      ...(sha ? { sha } : {})
+    })
+  });
+  if (res.status === 409 || res.status === 422) {
+    // Stale sha - fetch latest sha and overwrite ("last write wins")
+    const latest = await ghGetFile(filePath);
+    const retry = await ghRequest(`/contents/${filePath}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        content,
+        branch: CONFIG.branch,
+        ...(latest.sha ? { sha: latest.sha } : {})
+      })
+    });
+    if (!retry.ok) throw await ghError(retry);
+    const retryBody = await retry.json();
+    return retryBody.content.sha;
+  }
+  if (!res.ok) throw await ghError(res);
+  const body = await res.json();
+  return body.content.sha;
+}
+
+async function ghError(res) {
+  let detail = "";
+  try { detail = (await res.json()).message || ""; } catch (e) {}
+  const err = new Error(`GitHub API Fehler (${res.status}) ${detail}`);
+  err.status = res.status;
+  return err;
+}
+
+async function testConnection(owner, repo, branch, token) {
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    }
+  });
+  if (res.status === 401) throw new Error("Token ungültig oder abgelaufen.");
+  if (res.status === 404) throw new Error("Repository nicht gefunden oder Token hat keinen Zugriff darauf.");
+  if (!res.ok) throw new Error(`Verbindung fehlgeschlagen (Status ${res.status}).`);
+  const body = await res.json();
+  if (body.default_branch && !branch) branch = body.default_branch;
+  return branch;
+}
+
+/* =========================================================================
+   PERSISTENCE (localStorage config + sha cache)
+   ========================================================================= */
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function saveConfig(cfg) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+}
+function clearConfig() {
+  localStorage.removeItem(CONFIG_KEY);
+  localStorage.removeItem(SHA_KEY);
+}
+function loadShas() {
+  try {
+    const raw = localStorage.getItem(SHA_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+function persistShas() {
+  localStorage.setItem(SHA_KEY, JSON.stringify(SHAS));
+}
+
+/* =========================================================================
+   SYNC ENGINE
+   ========================================================================= */
+function setSyncStatus(key, status) {
+  moduleSyncState[key] = status;
+  renderSyncIndicator();
+}
+function renderSyncIndicator() {
+  const states = Object.values(moduleSyncState);
+  let overall = "synced";
+  if (states.includes("loading")) overall = "loading";
+  else if (states.includes("error")) overall = "error";
+  else if (states.includes("pending")) overall = "pending";
+
+  const label = {
+    synced: "Synchronisiert", pending: "Speichere...", error: "Sync-Fehler", loading: "Lade..."
+  }[overall];
+
+  const dot = document.querySelector("#sync-indicator .dot");
+  const text = document.getElementById("sync-text");
+  if (dot) dot.className = "dot " + overall;
+  if (text) text.textContent = label;
+
+  const box = document.getElementById("sync-box-sidebar");
+  if (box) {
+    box.innerHTML = `<span class="dot ${overall}" style="margin-right:6px;"></span>${label}`;
+  }
+}
+
+async function loadAllModules() {
+  DATA_MODULES.forEach(m => setSyncStatus(m.key, "loading"));
+  await Promise.all(DATA_MODULES.map(async m => {
+    try {
+      const { data, sha } = await ghGetFile(m.file);
+      STATE[m.key] = data || JSON.parse(JSON.stringify(DEFAULTS[m.key]));
+      SHAS[m.file] = sha;
+      setSyncStatus(m.key, "synced");
+    } catch (err) {
+      console.error(err);
+      STATE[m.key] = JSON.parse(JSON.stringify(DEFAULTS[m.key]));
+      setSyncStatus(m.key, "error");
+      toast(`Konnte ${m.label} nicht laden: ${err.message}`, "error");
+    }
+  }));
+  persistShas();
+}
+
+function scheduleSave(moduleKey) {
+  setSyncStatus(moduleKey, "pending");
+  clearTimeout(saveTimers[moduleKey]);
+  saveTimers[moduleKey] = setTimeout(() => saveModule(moduleKey), 900);
+}
+
+async function saveModule(moduleKey) {
+  const mod = DATA_MODULES.find(m => m.key === moduleKey);
+  if (!mod) return;
+  try {
+    const sha = await ghPutFile(mod.file, STATE[moduleKey], SHAS[mod.file], `Update ${mod.file} via Lebensplaner`);
+    SHAS[mod.file] = sha;
+    persistShas();
+    setSyncStatus(moduleKey, "synced");
+  } catch (err) {
+    console.error(err);
+    setSyncStatus(moduleKey, "error");
+    toast(`Speichern von ${mod.label} fehlgeschlagen: ${err.message}`, "error");
+  }
+}
+
+async function saveAllNow() {
+  await Promise.all(DATA_MODULES.map(m => saveModule(m.key)));
+  toast("Alle Module gespeichert.", "success");
+}
+
+/* =========================================================================
+   ROUTER
+   ========================================================================= */
+function currentRouteKey() {
+  const hash = location.hash.replace(/^#\/?/, "");
+  return MODULES.some(m => m.key === hash) ? hash : "dashboard";
+}
+function navigateTo(key) {
+  location.hash = "#/" + key;
+}
+function route() {
+  currentView = currentRouteKey();
+  document.getElementById("view-title").textContent = MODULES.find(m => m.key === currentView).label;
+  renderNav();
+  renderView();
+}
+window.addEventListener("hashchange", route);
+
+function renderNav() {
+  const buildItems = () => MODULES.map(m => `
+    <a class="nav-item ${m.key === currentView ? "active" : ""}" data-nav="${m.key}">
+      <span class="icon">${m.icon}</span><span class="label">${m.label}</span>
+    </a>`).join("");
+  const navList = document.getElementById("nav-list");
+  const bottomNav = document.getElementById("bottom-nav");
+  navList.innerHTML = buildItems();
+  bottomNav.innerHTML = buildItems();
+  document.querySelectorAll("[data-nav]").forEach(el => {
+    el.addEventListener("click", () => navigateTo(el.getAttribute("data-nav")));
+  });
+}
+
+function renderView() {
+  const content = document.getElementById("content");
+  const renderers = {
+    dashboard: renderDashboard,
+    goals: renderGoals,
+    calendar: renderCalendar,
+    tasks: renderTasks,
+    habits: renderHabits,
+    finances: renderFinances,
+    journal: renderJournal,
+    learning: renderLearning,
+    settings: renderSettings
+  };
+  content.innerHTML = "";
+  (renderers[currentView] || renderDashboard)(content);
+}
+
+/* =========================================================================
+   VIEW: DASHBOARD
+   ========================================================================= */
+function renderDashboard(root) {
+  const today = todayISO();
+  const tasks = (STATE.tasks?.tasks || []).filter(t => !t.done);
+  const overdue = tasks.filter(t => t.dueDate && t.dueDate < today);
+  const dueToday = tasks.filter(t => t.dueDate === today);
+
+  const events = (STATE.calendar?.events || []);
+  const next7 = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    events.forEach(e => { if (occursOn(e, iso)) next7.push({ ...e, occursOn: iso }); });
+  }
+  next7.sort((a, b) => a.occursOn.localeCompare(b.occursOn) || (a.time || "").localeCompare(b.time || ""));
+
+  const habits = STATE.habits?.habits || [];
+  const checkins = STATE.habits?.checkins || {};
+  const habitsToday = habits.filter(h => h.frequency === "daily");
+  const doneToday = habitsToday.filter(h => (checkins[h.id] || []).includes(today));
+
+  const goalsInProgress = (STATE.goals?.goals || []).filter(g => g.status === "in_progress");
+
+  const journalToday = (STATE.journal?.entries || []).some(e => e.date === today && e.type === "daily");
+
+  const monthPrefix = today.slice(0, 7);
+  const spentThisMonth = (STATE.finances?.expenses || []).filter(e => e.date && e.date.startsWith(monthPrefix)).reduce((s, e) => s + Number(e.amount || 0), 0);
+  const budgetTotal = (STATE.finances?.budgets || []).reduce((s, b) => s + Number(b.monthlyLimit || 0), 0);
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Guten Tag 👋 &mdash; ${fmtDate(today)}</h1></div>
+    <div class="grid-2">
+      <div class="card">
+        <h2>Aufgaben</h2>
+        ${overdue.length ? `<p><span class="badge high">${overdue.length} überfällig</span></p>` : ""}
+        ${dueToday.length === 0 && overdue.length === 0 ? '<div class="empty-hint">Keine offenen Aufgaben für heute. 🎉</div>' : ""}
+        <ul class="list">
+          ${[...overdue, ...dueToday].slice(0, 6).map(t => `<li>${escapeHtml(t.title)} <span class="meta">${t.dueDate ? fmtDate(t.dueDate) : ""}</span></li>`).join("")}
+        </ul>
+        <a href="#/tasks" class="btn small" style="margin-top:8px;">Zu den Aufgaben</a>
+      </div>
+      <div class="card">
+        <h2>Termine (7 Tage)</h2>
+        ${next7.length === 0 ? '<div class="empty-hint">Keine anstehenden Termine.</div>' : `
+        <ul class="list">
+          ${next7.slice(0, 6).map(e => `<li>${escapeHtml(e.title)} <span class="meta">${fmtDate(e.occursOn)}${e.time ? " · " + e.time : ""}</span></li>`).join("")}
+        </ul>`}
+        <a href="#/calendar" class="btn small" style="margin-top:8px;">Zum Kalender</a>
+      </div>
+      <div class="card">
+        <h2>Gewohnheiten heute</h2>
+        ${habitsToday.length === 0 ? '<div class="empty-hint">Noch keine täglichen Gewohnheiten angelegt.</div>' : `
+        <p>${doneToday.length} / ${habitsToday.length} erledigt</p>
+        <div class="progress-bar"><div style="width:${habitsToday.length ? (doneToday.length / habitsToday.length * 100) : 0}%"></div></div>`}
+        <a href="#/habits" class="btn small" style="margin-top:8px;">Zu den Gewohnheiten</a>
+      </div>
+      <div class="card">
+        <h2>Ziele in Bearbeitung</h2>
+        ${goalsInProgress.length === 0 ? '<div class="empty-hint">Keine Ziele in Bearbeitung.</div>' : `
+        <ul class="list">${goalsInProgress.slice(0, 5).map(g => `<li>${escapeHtml(g.title)} <span class="meta">${g.timeframe}</span></li>`).join("")}</ul>`}
+        <a href="#/goals" class="btn small" style="margin-top:8px;">Zu den Zielen</a>
+      </div>
+      <div class="card">
+        <h2>Journal</h2>
+        <p>${journalToday ? "Heute schon reflektiert ✅" : "Noch kein Eintrag für heute."}</p>
+        <a href="#/journal" class="btn small">${journalToday ? "Eintrag ansehen" : "Jetzt schreiben"}</a>
+      </div>
+      <div class="card">
+        <h2>Finanzen (Monat)</h2>
+        <p>${fmtMoney(spentThisMonth)} von ${fmtMoney(budgetTotal)} Budget ausgegeben</p>
+        <div class="progress-bar ${budgetTotal && spentThisMonth > budgetTotal ? "over" : ""}"><div style="width:${budgetTotal ? Math.min(100, spentThisMonth / budgetTotal * 100) : 0}%"></div></div>
+        <a href="#/finances" class="btn small" style="margin-top:8px;">Zu den Finanzen</a>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   VIEW: GOALS (Ziele & Vision)
+   ========================================================================= */
+function renderGoals(root) {
+  const data = STATE.goals;
+  const bereichOptions = data.lebensbereiche.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join("");
+  const bereichName = id => data.lebensbereiche.find(b => b.id === id)?.name || "–";
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Ziele &amp; Vision</h1></div>
+    <div class="card">
+      <h3>Neues Ziel</h3>
+      <form id="goal-form" class="form-inline">
+        <div class="field"><label>Titel</label><input name="title" required></div>
+        <div class="field"><label>Zeitraum</label>
+          <select name="timeframe"><option value="1y">1 Jahr</option><option value="5y">5 Jahre</option><option value="10y">10 Jahre</option></select>
+        </div>
+        <div class="field"><label>Lebensbereich</label><select name="bereich">${bereichOptions}</select></div>
+        <div class="field"><label>Zieldatum</label><input type="date" name="targetDate"></div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Lebensbereiche</h3>
+      <form id="bereich-form" class="form-inline">
+        <div class="field"><label>Neuer Lebensbereich</label><input name="name" placeholder="z. B. Kreativität"></div>
+        <div class="field"><label>Farbe</label><input type="color" name="color" value="#3d63dd"></div>
+        <button class="btn" type="submit">Bereich hinzufügen</button>
+      </form>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        ${data.lebensbereiche.map(b => `<span class="badge" style="background:${b.color}22; color:${b.color};">${escapeHtml(b.name)} <button class="icon-btn" data-del-bereich="${b.id}">✕</button></span>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Alle Ziele</h3>
+      ${data.goals.length === 0 ? '<div class="empty-hint">Noch keine Ziele erfasst.</div>' : `
+      <table class="data-table">
+        <thead><tr><th>Titel</th><th>Zeitraum</th><th>Bereich</th><th>Ziel</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${data.goals.map(g => `
+            <tr>
+              <td>${escapeHtml(g.title)}</td>
+              <td>${{ "1y": "1 Jahr", "5y": "5 Jahre", "10y": "10 Jahre" }[g.timeframe] || g.timeframe}</td>
+              <td>${escapeHtml(bereichName(g.bereich))}</td>
+              <td>${g.targetDate ? fmtDate(g.targetDate) : "–"}</td>
+              <td>
+                <select data-goal-status="${g.id}">
+                  <option value="open" ${g.status === "open" ? "selected" : ""}>Offen</option>
+                  <option value="in_progress" ${g.status === "in_progress" ? "selected" : ""}>In Bearbeitung</option>
+                  <option value="done" ${g.status === "done" ? "selected" : ""}>Erreicht</option>
+                </select>
+              </td>
+              <td class="row-actions"><button class="icon-btn" data-del-goal="${g.id}">🗑</button></td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`}
+    </div>
+  `;
+
+  root.querySelector("#goal-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.goals.push({
+      id: uid(), title: f.get("title"), timeframe: f.get("timeframe"),
+      bereich: f.get("bereich"), targetDate: f.get("targetDate") || null,
+      status: "open", createdAt: todayISO()
+    });
+    e.target.reset();
+    scheduleSave("goals"); renderGoals(root);
+  });
+  root.querySelector("#bereich-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const name = f.get("name")?.trim();
+    if (!name) return;
+    data.lebensbereiche.push({ id: "bereich-" + uid(), name, color: f.get("color") });
+    e.target.reset();
+    scheduleSave("goals"); renderGoals(root);
+  });
+  root.querySelectorAll("[data-del-bereich]").forEach(btn => btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-del-bereich");
+    data.lebensbereiche = data.lebensbereiche.filter(b => b.id !== id);
+    scheduleSave("goals"); renderGoals(root);
+  }));
+  root.querySelectorAll("[data-del-goal]").forEach(btn => btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-del-goal");
+    data.goals = data.goals.filter(g => g.id !== id);
+    scheduleSave("goals"); renderGoals(root);
+  }));
+  root.querySelectorAll("[data-goal-status]").forEach(sel => sel.addEventListener("change", () => {
+    const id = sel.getAttribute("data-goal-status");
+    const g = data.goals.find(g => g.id === id);
+    if (g) g.status = sel.value;
+    scheduleSave("goals");
+  }));
+}
+
+/* =========================================================================
+   VIEW: CALENDAR
+   ========================================================================= */
+let calCursor = new Date(); calCursor.setDate(1);
+
+function occursOn(event, dateISO) {
+  if (!event.recurring) return event.date === dateISO;
+  const start = new Date(event.date + "T00:00:00");
+  const d = new Date(dateISO + "T00:00:00");
+  if (d < start) return false;
+  switch (event.recurring.freq) {
+    case "daily": return true;
+    case "weekly": return d.getDay() === start.getDay();
+    case "monthly": return d.getDate() === start.getDate();
+    case "yearly": return d.getDate() === start.getDate() && d.getMonth() === start.getMonth();
+    default: return false;
+  }
+}
+
+function renderCalendar(root) {
+  const data = STATE.calendar;
+  const year = calCursor.getFullYear(), month = calCursor.getMonth();
+  const monthLabel = calCursor.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = todayISO();
+
+  let cells = "";
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - startOffset + 1;
+    const cellDate = new Date(year, month, dayNum);
+    const iso = new Date(cellDate.getTime() - cellDate.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const inMonth = dayNum >= 1 && dayNum <= daysInMonth;
+    const dayEvents = data.events.filter(e => occursOn(e, iso));
+    cells += `
+      <div class="cal-cell ${!inMonth ? "other-month" : ""} ${iso === today ? "today" : ""}" data-day="${iso}">
+        <div class="daynum">${cellDate.getDate()}</div>
+        ${dayEvents.slice(0, 3).map(e => `<div class="cal-event ${e.type === "deadline" ? "deadline" : ""}">${escapeHtml(e.title)}</div>`).join("")}
+        ${dayEvents.length > 3 ? `<div class="meta">+${dayEvents.length - 3} mehr</div>` : ""}
+      </div>`;
+  }
+
+  const upcoming = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    data.events.forEach(e => { if (occursOn(e, iso)) upcoming.push({ ...e, occursOn: iso }); });
+  }
+  upcoming.sort((a, b) => a.occursOn.localeCompare(b.occursOn));
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Kalender &amp; Zeitplanung</h1></div>
+    <div class="card">
+      <div class="cal-header">
+        <button class="btn small" id="cal-prev">← Vorheriger</button>
+        <h3>${monthLabel}</h3>
+        <button class="btn small" id="cal-next">Nächster →</button>
+      </div>
+      <div class="cal-grid">
+        ${["Mo","Di","Mi","Do","Fr","Sa","So"].map(d => `<div class="cal-daylabel">${d}</div>`).join("")}
+        ${cells}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Nächste 14 Tage</h3>
+      ${upcoming.length === 0 ? '<div class="empty-hint">Keine anstehenden Termine.</div>' : `
+      <ul class="list">
+        ${upcoming.map(e => `<li>${escapeHtml(e.title)} <span class="meta">${fmtDate(e.occursOn)}${e.time ? " · " + e.time : ""} ${e.type === "deadline" ? '<span class="badge high">Deadline</span>' : ""}</span> <button class="icon-btn" data-del-event="${e.id}" style="margin-left:auto;">🗑</button></li>`).join("")}
+      </ul>`}
+    </div>
+    <div class="card" id="event-form-card">
+      <h3>Termin hinzufügen</h3>
+      <form id="event-form" class="form-inline">
+        <div class="field"><label>Titel</label><input name="title" required></div>
+        <div class="field"><label>Datum</label><input type="date" name="date" value="${today}" required></div>
+        <div class="field"><label>Uhrzeit</label><input type="time" name="time"></div>
+        <div class="field"><label>Typ</label>
+          <select name="type"><option value="appointment">Termin</option><option value="deadline">Deadline</option><option value="event">Event</option></select>
+        </div>
+        <div class="field"><label>Wiederholung</label>
+          <select name="freq"><option value="">Keine</option><option value="daily">Täglich</option><option value="weekly">Wöchentlich</option><option value="monthly">Monatlich</option><option value="yearly">Jährlich</option></select>
+        </div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+    </div>
+  `;
+
+  root.querySelector("#cal-prev").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(root); });
+  root.querySelector("#cal-next").addEventListener("click", () => { calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(root); });
+  root.querySelectorAll("[data-day]").forEach(cell => cell.addEventListener("click", () => {
+    root.querySelector('#event-form [name="date"]').value = cell.getAttribute("data-day");
+    root.querySelector("#event-form-card").scrollIntoView({ behavior: "smooth", block: "center" });
+  }));
+  root.querySelector("#event-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const freq = f.get("freq");
+    data.events.push({
+      id: uid(), title: f.get("title"), date: f.get("date"), time: f.get("time") || null,
+      type: f.get("type"), recurring: freq ? { freq } : null, notes: ""
+    });
+    scheduleSave("calendar"); renderCalendar(root);
+  });
+  root.querySelectorAll("[data-del-event]").forEach(btn => btn.addEventListener("click", () => {
+    data.events = data.events.filter(e => e.id !== btn.getAttribute("data-del-event"));
+    scheduleSave("calendar"); renderCalendar(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: TASKS (Aufgaben & Projekte)
+   ========================================================================= */
+function renderTasks(root) {
+  const data = STATE.tasks;
+  const activeProjects = data.projects.filter(p => !p.archived);
+  const projectOptions = activeProjects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+  const projectName = id => data.projects.find(p => p.id === id)?.name || "Inbox";
+  const today = todayISO();
+
+  const openTasks = data.tasks.filter(t => !t.done).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+  const doneTasks = data.tasks.filter(t => t.done);
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Aufgaben &amp; Projekte</h1></div>
+    <div class="card">
+      <h3>Projekte</h3>
+      <form id="project-form" class="form-inline">
+        <div class="field"><label>Neues Projekt</label><input name="name" placeholder="z. B. Umzug"></div>
+        <div class="field"><label>Farbe</label><input type="color" name="color" value="#3d63dd"></div>
+        <button class="btn" type="submit">Anlegen</button>
+      </form>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        ${activeProjects.map(p => `<span class="badge" style="background:${p.color}22; color:${p.color};">${escapeHtml(p.name)} ${p.id !== "inbox" ? `<button class="icon-btn" data-del-project="${p.id}">✕</button>` : ""}</span>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Neue Aufgabe</h3>
+      <form id="task-form" class="form-inline">
+        <div class="field"><label>Titel</label><input name="title" required></div>
+        <div class="field"><label>Projekt</label><select name="projectId">${projectOptions}</select></div>
+        <div class="field"><label>Priorität</label>
+          <select name="priority"><option value="low">Niedrig</option><option value="medium" selected>Mittel</option><option value="high">Hoch</option></select>
+        </div>
+        <div class="field"><label>Fällig</label><input type="date" name="dueDate"></div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Offene Aufgaben (${openTasks.length})</h3>
+      ${openTasks.length === 0 ? '<div class="empty-hint">Keine offenen Aufgaben.</div>' : `
+      <ul class="list">
+        ${openTasks.map(t => `
+          <li>
+            <input type="checkbox" data-toggle-task="${t.id}">
+            <span style="flex:1;">${escapeHtml(t.title)}</span>
+            <span class="badge ${t.priority}">${{ low: "Niedrig", medium: "Mittel", high: "Hoch" }[t.priority]}</span>
+            <span class="meta">${escapeHtml(projectName(t.projectId))}</span>
+            <span class="meta ${t.dueDate && t.dueDate < today ? "" : ""}" style="${t.dueDate && t.dueDate < today ? "color:var(--danger);font-weight:700;" : ""}">${t.dueDate ? fmtDate(t.dueDate) : ""}</span>
+            <button class="icon-btn" data-del-task="${t.id}">🗑</button>
+          </li>`).join("")}
+      </ul>`}
+    </div>
+    <div class="card">
+      <h3>Erledigt (${doneTasks.length})</h3>
+      ${doneTasks.length === 0 ? '<div class="empty-hint">Noch nichts erledigt.</div>' : `
+      <ul class="list">
+        ${doneTasks.slice(-15).reverse().map(t => `
+          <li><input type="checkbox" checked data-toggle-task="${t.id}"><span style="flex:1; text-decoration:line-through; color:var(--text-muted);">${escapeHtml(t.title)}</span><button class="icon-btn" data-del-task="${t.id}">🗑</button></li>`).join("")}
+      </ul>`}
+    </div>
+  `;
+
+  root.querySelector("#project-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const name = f.get("name")?.trim();
+    if (!name) return;
+    data.projects.push({ id: uid(), name, color: f.get("color"), archived: false });
+    e.target.reset();
+    scheduleSave("tasks"); renderTasks(root);
+  });
+  root.querySelectorAll("[data-del-project]").forEach(btn => btn.addEventListener("click", () => {
+    data.projects = data.projects.filter(p => p.id !== btn.getAttribute("data-del-project"));
+    scheduleSave("tasks"); renderTasks(root);
+  }));
+  root.querySelector("#task-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.tasks.push({
+      id: uid(), title: f.get("title"), projectId: f.get("projectId"),
+      priority: f.get("priority"), dueDate: f.get("dueDate") || null,
+      done: false, createdAt: todayISO(), notes: ""
+    });
+    e.target.reset();
+    scheduleSave("tasks"); renderTasks(root);
+  });
+  root.querySelectorAll("[data-toggle-task]").forEach(cb => cb.addEventListener("change", () => {
+    const t = data.tasks.find(t => t.id === cb.getAttribute("data-toggle-task"));
+    if (t) t.done = cb.checked;
+    scheduleSave("tasks"); renderTasks(root);
+  }));
+  root.querySelectorAll("[data-del-task]").forEach(btn => btn.addEventListener("click", () => {
+    data.tasks = data.tasks.filter(t => t.id !== btn.getAttribute("data-del-task"));
+    scheduleSave("tasks"); renderTasks(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: HABITS (Gewohnheiten & Routinen)
+   ========================================================================= */
+function computeStreak(dates) {
+  if (!dates || dates.length === 0) return 0;
+  const set = new Set(dates);
+  let streak = 0;
+  let cursor = new Date();
+  const todayStr = todayISO();
+  if (!set.has(todayStr)) cursor.setDate(cursor.getDate() - 1);
+  while (true) {
+    const iso = new Date(cursor.getTime() - cursor.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    if (set.has(iso)) { streak++; cursor.setDate(cursor.getDate() - 1); } else break;
+  }
+  return streak;
+}
+
+function renderHabits(root) {
+  const data = STATE.habits;
+  const today = todayISO();
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Gewohnheiten &amp; Routinen</h1></div>
+    <div class="card">
+      <h3>Neue Gewohnheit</h3>
+      <form id="habit-form" class="form-inline">
+        <div class="field"><label>Name</label><input name="name" required></div>
+        <div class="field"><label>Frequenz</label>
+          <select name="frequency"><option value="daily">Täglich</option><option value="weekly">Wöchentlich</option></select>
+        </div>
+        <div class="field"><label>Ziel Tage/Woche</label><input type="number" name="targetDaysPerWeek" min="1" max="7" value="7"></div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Deine Gewohnheiten</h3>
+      ${data.habits.length === 0 ? '<div class="empty-hint">Noch keine Gewohnheiten angelegt.</div>' : data.habits.map(h => {
+        const checks = data.checkins[h.id] || [];
+        const doneToday = checks.includes(today);
+        const streak = computeStreak(checks);
+        const weekCount = checks.filter(d => new Date(d) >= weekStart).length;
+        return `
+        <div class="habit-row">
+          <div class="habit-check ${doneToday ? "done" : ""}" data-toggle-habit="${h.id}">${doneToday ? "✓" : ""}</div>
+          <div style="flex:1;">
+            <div>${escapeHtml(h.name)}</div>
+            <div class="streak">${h.frequency === "daily" ? `🔥 ${streak} Tage Streak` : `${weekCount}/${h.targetDaysPerWeek} diese Woche`}</div>
+          </div>
+          <button class="icon-btn" data-del-habit="${h.id}">🗑</button>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  root.querySelector("#habit-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const id = uid();
+    data.habits.push({ id, name: f.get("name"), frequency: f.get("frequency"), targetDaysPerWeek: Number(f.get("targetDaysPerWeek")) || 7, createdAt: today });
+    data.checkins[id] = [];
+    e.target.reset();
+    scheduleSave("habits"); renderHabits(root);
+  });
+  root.querySelectorAll("[data-toggle-habit]").forEach(el => el.addEventListener("click", () => {
+    const id = el.getAttribute("data-toggle-habit");
+    const list = data.checkins[id] || (data.checkins[id] = []);
+    const idx = list.indexOf(today);
+    if (idx >= 0) list.splice(idx, 1); else list.push(today);
+    scheduleSave("habits"); renderHabits(root);
+  }));
+  root.querySelectorAll("[data-del-habit]").forEach(btn => btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-del-habit");
+    data.habits = data.habits.filter(h => h.id !== id);
+    delete data.checkins[id];
+    scheduleSave("habits"); renderHabits(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: FINANCES
+   ========================================================================= */
+function renderFinances(root) {
+  const data = STATE.finances;
+  const today = todayISO();
+  const monthPrefix = today.slice(0, 7);
+  const spentByCategory = {};
+  data.expenses.filter(e => e.date && e.date.startsWith(monthPrefix)).forEach(e => {
+    spentByCategory[e.category] = (spentByCategory[e.category] || 0) + Number(e.amount || 0);
+  });
+
+  root.innerHTML = `
+    <div class="section-header"><h1>Finanzen</h1></div>
+    <div class="card">
+      <h3>Budgets (monatlich)</h3>
+      <form id="budget-form" class="form-inline">
+        <div class="field"><label>Kategorie</label><input name="category" required></div>
+        <div class="field"><label>Limit</label><input type="number" step="0.01" name="monthlyLimit" required></div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+      ${data.budgets.length === 0 ? '<div class="empty-hint">Noch keine Budgets angelegt.</div>' : data.budgets.map(b => {
+        const spent = spentByCategory[b.category] || 0;
+        const pct = b.monthlyLimit ? Math.min(100, spent / b.monthlyLimit * 100) : 0;
+        return `<div style="margin:10px 0;">
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span>${escapeHtml(b.category)}</span><span>${fmtMoney(spent)} / ${fmtMoney(b.monthlyLimit)} <button class="icon-btn" data-del-budget="${b.id}">🗑</button></span></div>
+          <div class="progress-bar ${spent > b.monthlyLimit ? "over" : ""}"><div style="width:${pct}%"></div></div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="card">
+      <h3>Ausgabe erfassen</h3>
+      <form id="expense-form" class="form-inline">
+        <div class="field"><label>Datum</label><input type="date" name="date" value="${today}" required></div>
+        <div class="field"><label>Kategorie</label><input name="category" required></div>
+        <div class="field"><label>Betrag</label><input type="number" step="0.01" name="amount" required></div>
+        <div class="field"><label>Notiz</label><input name="note"></div>
+        <button class="btn primary" type="submit">Erfassen</button>
+      </form>
+      ${data.expenses.length === 0 ? '<div class="empty-hint">Noch keine Ausgaben erfasst.</div>' : `
+      <table class="data-table">
+        <thead><tr><th>Datum</th><th>Kategorie</th><th>Notiz</th><th>Betrag</th><th></th></tr></thead>
+        <tbody>
+          ${data.expenses.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20).map(e => `
+            <tr><td>${fmtDate(e.date)}</td><td>${escapeHtml(e.category)}</td><td>${escapeHtml(e.note || "")}</td><td class="num">${fmtMoney(e.amount)}</td><td><button class="icon-btn" data-del-expense="${e.id}">🗑</button></td></tr>`).join("")}
+        </tbody>
+      </table>`}
+    </div>
+    <div class="card">
+      <h3>Sparziele</h3>
+      <form id="savings-form" class="form-inline">
+        <div class="field"><label>Name</label><input name="name" required></div>
+        <div class="field"><label>Zielbetrag</label><input type="number" step="0.01" name="targetAmount" required></div>
+        <div class="field"><label>Zieldatum</label><input type="date" name="targetDate"></div>
+        <button class="btn primary" type="submit">Hinzufügen</button>
+      </form>
+      ${data.savingsGoals.length === 0 ? '<div class="empty-hint">Noch keine Sparziele.</div>' : data.savingsGoals.map(s => {
+        const pct = s.targetAmount ? Math.min(100, (s.currentAmount || 0) / s.targetAmount * 100) : 0;
+        return `<div style="margin:10px 0;">
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span>${escapeHtml(s.name)}${s.targetDate ? " · " + fmtDate(s.targetDate) : ""}</span><span>${fmtMoney(s.currentAmount || 0)} / ${fmtMoney(s.targetAmount)}</span></div>
+          <div class="progress-bar"><div style="width:${pct}%"></div></div>
+          <div class="form-inline" style="margin-top:6px;">
+            <input type="number" step="0.01" placeholder="Aktuellen Stand setzen" data-savings-update="${s.id}" style="max-width:180px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+            <button class="icon-btn" data-del-savings="${s.id}">🗑</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+
+  root.querySelector("#budget-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.budgets.push({ id: uid(), category: f.get("category"), monthlyLimit: Number(f.get("monthlyLimit")) });
+    e.target.reset();
+    scheduleSave("finances"); renderFinances(root);
+  });
+  root.querySelectorAll("[data-del-budget]").forEach(btn => btn.addEventListener("click", () => {
+    data.budgets = data.budgets.filter(b => b.id !== btn.getAttribute("data-del-budget"));
+    scheduleSave("finances"); renderFinances(root);
+  }));
+  root.querySelector("#expense-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.expenses.push({ id: uid(), date: f.get("date"), category: f.get("category"), amount: Number(f.get("amount")), note: f.get("note") || "" });
+    e.target.reset();
+    scheduleSave("finances"); renderFinances(root);
+  });
+  root.querySelectorAll("[data-del-expense]").forEach(btn => btn.addEventListener("click", () => {
+    data.expenses = data.expenses.filter(e => e.id !== btn.getAttribute("data-del-expense"));
+    scheduleSave("finances"); renderFinances(root);
+  }));
+  root.querySelector("#savings-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.savingsGoals.push({ id: uid(), name: f.get("name"), targetAmount: Number(f.get("targetAmount")), currentAmount: 0, targetDate: f.get("targetDate") || null });
+    e.target.reset();
+    scheduleSave("finances"); renderFinances(root);
+  });
+  root.querySelectorAll("[data-savings-update]").forEach(input => input.addEventListener("change", () => {
+    const s = data.savingsGoals.find(s => s.id === input.getAttribute("data-savings-update"));
+    if (s) s.currentAmount = Number(input.value) || 0;
+    scheduleSave("finances"); renderFinances(root);
+  }));
+  root.querySelectorAll("[data-del-savings]").forEach(btn => btn.addEventListener("click", () => {
+    data.savingsGoals = data.savingsGoals.filter(s => s.id !== btn.getAttribute("data-del-savings"));
+    scheduleSave("finances"); renderFinances(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: JOURNAL
+   ========================================================================= */
+function renderJournal(root) {
+  const data = STATE.journal;
+  const today = todayISO();
+  root.innerHTML = `
+    <div class="section-header"><h1>Journal &amp; Reflexion</h1></div>
+    <div class="card">
+      <h3>Neuer Eintrag</h3>
+      <form id="journal-form">
+        <div class="field-row">
+          <div class="field"><label>Datum</label><input type="date" name="date" value="${today}" required></div>
+          <div class="field"><label>Typ</label>
+            <select name="type"><option value="daily">Tagesrückblick</option><option value="weekly">Wochenreview</option><option value="monthly">Monatsreview</option></select>
+          </div>
+          <div class="field"><label>Stimmung</label>
+            <select name="mood"><option value="😀">😀 Super</option><option value="🙂" selected>🙂 Gut</option><option value="😐">😐 Neutral</option><option value="🙁">🙁 Nicht so gut</option><option value="😞">😞 Schlecht</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Text</label><textarea class="journal-text" name="text" placeholder="Was ist heute passiert? Was hast du gelernt?"></textarea></div>
+        <button class="btn primary" type="submit">Speichern</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Bisherige Einträge</h3>
+      ${data.entries.length === 0 ? '<div class="empty-hint">Noch keine Einträge.</div>' : data.entries.slice().sort((a, b) => b.date.localeCompare(a.date)).map(e => `
+        <div style="padding:10px 0; border-bottom:1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between;">
+            <strong>${e.mood} ${fmtDate(e.date)} <span class="meta">${{ daily: "Tagesrückblick", weekly: "Wochenreview", monthly: "Monatsreview" }[e.type]}</span></strong>
+            <button class="icon-btn" data-del-entry="${e.id}">🗑</button>
+          </div>
+          <p style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(e.text)}</p>
+        </div>`).join("")}
+    </div>
+  `;
+
+  root.querySelector("#journal-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.entries.push({ id: uid(), date: f.get("date"), type: f.get("type"), mood: f.get("mood"), text: f.get("text") || "", createdAt: new Date().toISOString() });
+    e.target.reset();
+    scheduleSave("journal"); renderJournal(root);
+  });
+  root.querySelectorAll("[data-del-entry]").forEach(btn => btn.addEventListener("click", () => {
+    data.entries = data.entries.filter(e => e.id !== btn.getAttribute("data-del-entry"));
+    scheduleSave("journal"); renderJournal(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: LEARNING (Lernen & Wachstum)
+   ========================================================================= */
+function renderLearning(root) {
+  const data = STATE.learning;
+  root.innerHTML = `
+    <div class="section-header"><h1>Lernen &amp; Wachstum</h1></div>
+    <div class="grid-3">
+      <div class="card">
+        <h3>📖 Bücher</h3>
+        <form id="book-form">
+          <div class="field"><input name="title" placeholder="Titel" required></div>
+          <div class="field"><input name="author" placeholder="Autor"></div>
+          <div class="field"><select name="status"><option value="to_read">Ungelesen</option><option value="reading">Am Lesen</option><option value="done">Gelesen</option></select></div>
+          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
+        </form>
+        <ul class="list" style="margin-top:10px;">
+          ${data.books.length === 0 ? '<li class="empty-hint">Keine Bücher.</li>' : data.books.map(b => `
+            <li><span style="flex:1;">${escapeHtml(b.title)}<br><span class="meta">${escapeHtml(b.author || "")}</span></span>
+            <select data-book-status="${b.id}">
+              <option value="to_read" ${b.status === "to_read" ? "selected" : ""}>Ungelesen</option>
+              <option value="reading" ${b.status === "reading" ? "selected" : ""}>Am Lesen</option>
+              <option value="done" ${b.status === "done" ? "selected" : ""}>Gelesen</option>
+            </select>
+            <button class="icon-btn" data-del-book="${b.id}">🗑</button></li>`).join("")}
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🎓 Kurse</h3>
+        <form id="course-form">
+          <div class="field"><input name="name" placeholder="Kursname" required></div>
+          <div class="field"><input name="provider" placeholder="Anbieter"></div>
+          <div class="field"><input type="number" name="progress" min="0" max="100" placeholder="Fortschritt %"></div>
+          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
+        </form>
+        <ul class="list" style="margin-top:10px;">
+          ${data.courses.length === 0 ? '<li class="empty-hint">Keine Kurse.</li>' : data.courses.map(c => `
+            <li><span style="flex:1;">${escapeHtml(c.name)}<br><span class="meta">${escapeHtml(c.provider || "")}</span>
+              <div class="progress-bar" style="margin-top:4px;"><div style="width:${c.progress || 0}%"></div></div>
+            </span><button class="icon-btn" data-del-course="${c.id}">🗑</button></li>`).join("")}
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🛠 Skill-Ziele</h3>
+        <form id="skill-form">
+          <div class="field"><input name="name" placeholder="Skill" required></div>
+          <div class="field"><input type="number" name="currentLevel" min="1" max="5" placeholder="Aktuell (1-5)"></div>
+          <div class="field"><input type="number" name="targetLevel" min="1" max="5" placeholder="Ziel (1-5)"></div>
+          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
+        </form>
+        <ul class="list" style="margin-top:10px;">
+          ${data.skills.length === 0 ? '<li class="empty-hint">Keine Skill-Ziele.</li>' : data.skills.map(s => `
+            <li><span style="flex:1;">${escapeHtml(s.name)}<br><span class="meta">Level ${s.currentLevel || "?"} → ${s.targetLevel || "?"}</span></span><button class="icon-btn" data-del-skill="${s.id}">🗑</button></li>`).join("")}
+        </ul>
+      </div>
+    </div>
+  `;
+
+  root.querySelector("#book-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.books.push({ id: uid(), title: f.get("title"), author: f.get("author") || "", status: f.get("status"), rating: null, notes: "" });
+    e.target.reset();
+    scheduleSave("learning"); renderLearning(root);
+  });
+  root.querySelector("#course-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.courses.push({ id: uid(), name: f.get("name"), provider: f.get("provider") || "", progress: Number(f.get("progress")) || 0, status: "active", notes: "" });
+    e.target.reset();
+    scheduleSave("learning"); renderLearning(root);
+  });
+  root.querySelector("#skill-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    data.skills.push({ id: uid(), name: f.get("name"), currentLevel: Number(f.get("currentLevel")) || null, targetLevel: Number(f.get("targetLevel")) || null, notes: "" });
+    e.target.reset();
+    scheduleSave("learning"); renderLearning(root);
+  });
+  root.querySelectorAll("[data-book-status]").forEach(sel => sel.addEventListener("change", () => {
+    const b = data.books.find(b => b.id === sel.getAttribute("data-book-status"));
+    if (b) b.status = sel.value;
+    scheduleSave("learning");
+  }));
+  root.querySelectorAll("[data-del-book]").forEach(btn => btn.addEventListener("click", () => {
+    data.books = data.books.filter(b => b.id !== btn.getAttribute("data-del-book"));
+    scheduleSave("learning"); renderLearning(root);
+  }));
+  root.querySelectorAll("[data-del-course]").forEach(btn => btn.addEventListener("click", () => {
+    data.courses = data.courses.filter(c => c.id !== btn.getAttribute("data-del-course"));
+    scheduleSave("learning"); renderLearning(root);
+  }));
+  root.querySelectorAll("[data-del-skill]").forEach(btn => btn.addEventListener("click", () => {
+    data.skills = data.skills.filter(s => s.id !== btn.getAttribute("data-del-skill"));
+    scheduleSave("learning"); renderLearning(root);
+  }));
+}
+
+/* =========================================================================
+   VIEW: SETTINGS
+   ========================================================================= */
+function renderSettings(root) {
+  root.innerHTML = `
+    <div class="section-header"><h1>Einstellungen</h1></div>
+    <div class="card">
+      <h3>Verbindung</h3>
+      <p>Repository: <strong>${escapeHtml(CONFIG.owner)}/${escapeHtml(CONFIG.repo)}</strong> (Branch: ${escapeHtml(CONFIG.branch)})</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" id="btn-sync-now">🔄 Jetzt neu laden</button>
+        <button class="btn" id="btn-save-all">💾 Alles speichern</button>
+        <button class="btn danger" id="btn-disconnect">Verbindung trennen</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Hinweis zur Sicherheit</h3>
+      <p style="font-size:13px; color:var(--text-muted);">Dein Personal Access Token wird nur lokal im <code>localStorage</code> dieses Browsers gespeichert. Verwende die App nur auf vertrauenswürdigen Geräten und beschränke den Token auf das minimal nötige Repository und die Berechtigung <em>Contents: Read and write</em>.</p>
+    </div>
+  `;
+  root.querySelector("#btn-sync-now").addEventListener("click", async () => {
+    await loadAllModules();
+    toast("Daten neu geladen.", "success");
+    renderView();
+  });
+  root.querySelector("#btn-save-all").addEventListener("click", saveAllNow);
+  root.querySelector("#btn-disconnect").addEventListener("click", () => {
+    if (confirm("Verbindung wirklich trennen? Der Token wird aus diesem Browser entfernt.")) {
+      clearConfig();
+      location.reload();
+    }
+  });
+}
+
+/* =========================================================================
+   SETUP FLOW
+   ========================================================================= */
+function showSetupScreen() {
+  document.getElementById("setup-screen").classList.remove("hidden");
+  document.getElementById("main-layout").classList.add("hidden");
+}
+function showMainLayout() {
+  document.getElementById("setup-screen").classList.add("hidden");
+  document.getElementById("main-layout").classList.remove("hidden");
+}
+
+function initSetupForm() {
+  const form = document.getElementById("setup-form");
+  const errorBox = document.getElementById("setup-error");
+  const statusBox = document.getElementById("setup-status");
+  const submitBtn = document.getElementById("setup-submit");
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    errorBox.classList.add("hidden");
+    statusBox.classList.remove("hidden");
+    statusBox.textContent = "Verbindung wird geprüft...";
+    submitBtn.disabled = true;
+
+    const owner = document.getElementById("cfg-owner").value.trim();
+    const repo = document.getElementById("cfg-repo").value.trim();
+    let branch = document.getElementById("cfg-branch").value.trim() || "main";
+    const token = document.getElementById("cfg-token").value.trim();
+
+    try {
+      branch = await testConnection(owner, repo, branch, token);
+      CONFIG = { owner, repo, branch, token };
+      saveConfig(CONFIG);
+      statusBox.textContent = "Verbunden. Lade Daten...";
+      await boot();
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.classList.remove("hidden");
+      statusBox.classList.add("hidden");
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+async function boot() {
+  SHAS = loadShas();
+  await loadAllModules();
+  showMainLayout();
+  route();
+}
+
+function init() {
+  CONFIG = loadConfig();
+  initSetupForm();
+  if (!CONFIG) {
+    showSetupScreen();
+    return;
+  }
+  showMainLayout();
+  boot().catch(err => {
+    console.error(err);
+    toast("Fehler beim Laden: " + err.message, "error");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
