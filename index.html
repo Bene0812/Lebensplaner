@@ -244,6 +244,23 @@ table.data-table td.num { text-align: right; }
 .cal-event.birthday { background: #b6329c; }
 .badge.birthday { background: rgba(182,50,156,0.15); color: #b6329c; }
 
+.status-select {
+  appearance: none; -webkit-appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 26px 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+}
+.status-select.status-open { background-color: rgba(107,114,128,0.15); color: var(--text-muted); }
+.status-select.status-in_progress { background-color: rgba(201,138,28,0.15); color: var(--warn); }
+.status-select.status-done { background-color: rgba(47,158,110,0.15); color: var(--ok); }
+
 .habit-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .habit-row:last-child { border-bottom: none; }
 .habit-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--bg); }
@@ -849,7 +866,7 @@ function renderGoals(root) {
               <td>${escapeHtml(bereichName(g.bereich))}</td>
               <td>${g.targetDate ? fmtDate(g.targetDate) : "–"}</td>
               <td>
-                <select data-goal-status="${g.id}">
+                <select class="status-select status-${g.status}" data-goal-status="${g.id}">
                   <option value="open" ${g.status === "open" ? "selected" : ""}>Offen</option>
                   <option value="in_progress" ${g.status === "in_progress" ? "selected" : ""}>In Bearbeitung</option>
                   <option value="done" ${g.status === "done" ? "selected" : ""}>Erreicht</option>
@@ -896,7 +913,7 @@ function renderGoals(root) {
     const id = sel.getAttribute("data-goal-status");
     const g = data.goals.find(g => g.id === id);
     if (g) g.status = sel.value;
-    scheduleSave("goals");
+    scheduleSave("goals"); renderGoals(root);
   }));
 }
 
