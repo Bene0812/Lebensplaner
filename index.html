@@ -241,6 +241,8 @@ table.data-table td.num { text-align: right; }
 .cal-cell.other-month { opacity: 0.4; }
 .cal-cell .daynum { font-weight: 700; margin-bottom: 2px; }
 .cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.entry-title { cursor: pointer; }
+.entry-title:hover { text-decoration: underline; }
 .cal-event.deadline { background: var(--danger); }
 .cal-event.birthday { background: #b6329c; }
 .badge.birthday { background: rgba(182,50,156,0.15); color: #b6329c; }
@@ -1141,6 +1143,49 @@ function renderTasks(root) {
   const openTasks = data.tasks.filter(t => !t.done).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
   const doneTasks = data.tasks.filter(t => t.done);
 
+  function openTaskModal(taskId) {
+    const t = data.tasks.find(t => t.id === taskId);
+    if (!t) return;
+    openModal(`
+      <div class="modal-header"><h3>Aufgabe bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
+      <form id="modal-task-form">
+        <div class="field"><label>Titel</label><input name="title" value="${escapeHtml(t.title)}" required></div>
+        <div class="field"><label>Projekt</label>
+          <select name="projectId">${data.projects.map(p => `<option value="${p.id}" ${t.projectId === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Priorität</label>
+          <select name="priority">
+            <option value="low" ${t.priority === "low" ? "selected" : ""}>Niedrig</option>
+            <option value="medium" ${t.priority === "medium" ? "selected" : ""}>Mittel</option>
+            <option value="high" ${t.priority === "high" ? "selected" : ""}>Hoch</option>
+          </select>
+        </div>
+        <div class="field"><label>Fällig</label><input type="date" name="dueDate" value="${t.dueDate || ""}"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn danger" id="modal-delete-btn">Löschen</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn" id="modal-cancel-btn">Abbrechen</button>
+            <button class="btn primary" type="submit">Speichern</button>
+          </div>
+        </div>
+      </form>
+    `, box => {
+      box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-delete-btn").addEventListener("click", () => {
+        data.tasks = data.tasks.filter(x => x.id !== taskId);
+        scheduleSave("tasks"); closeModal(); renderTasks(root);
+      });
+      box.querySelector("#modal-task-form").addEventListener("submit", e => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        t.title = f.get("title"); t.projectId = f.get("projectId");
+        t.priority = f.get("priority"); t.dueDate = f.get("dueDate") || null;
+        scheduleSave("tasks"); closeModal(); renderTasks(root);
+      });
+    });
+  }
+
   root.innerHTML = `
     <div class="section-header"><h1>Aufgaben &amp; Projekte</h1></div>
     <div class="card">
@@ -1173,7 +1218,7 @@ function renderTasks(root) {
         ${openTasks.map(t => `
           <li>
             <input type="checkbox" data-toggle-task="${t.id}">
-            <span style="flex:1;">${escapeHtml(t.title)}</span>
+            <span class="entry-title" style="flex:1;" data-edit-task="${t.id}">${escapeHtml(t.title)}</span>
             <span class="badge ${t.priority}">${{ low: "Niedrig", medium: "Mittel", high: "Hoch" }[t.priority]}</span>
             <span class="meta">${escapeHtml(projectName(t.projectId))}</span>
             <span class="meta ${t.dueDate && t.dueDate < today ? "" : ""}" style="${t.dueDate && t.dueDate < today ? "color:var(--danger);font-weight:700;" : ""}">${t.dueDate ? fmtDate(t.dueDate) : ""}</span>
@@ -1186,7 +1231,7 @@ function renderTasks(root) {
       ${doneTasks.length === 0 ? '<div class="empty-hint">Noch nichts erledigt.</div>' : `
       <ul class="list">
         ${doneTasks.slice(-15).reverse().map(t => `
-          <li><input type="checkbox" checked data-toggle-task="${t.id}"><span style="flex:1; text-decoration:line-through; color:var(--text-muted);">${escapeHtml(t.title)}</span><button class="icon-btn" data-del-task="${t.id}">🗑</button></li>`).join("")}
+          <li><input type="checkbox" checked data-toggle-task="${t.id}"><span class="entry-title" style="flex:1; text-decoration:line-through; color:var(--text-muted);" data-edit-task="${t.id}">${escapeHtml(t.title)}</span><button class="icon-btn" data-del-task="${t.id}">🗑</button></li>`).join("")}
       </ul>`}
     </div>
   `;
@@ -1224,6 +1269,9 @@ function renderTasks(root) {
     data.tasks = data.tasks.filter(t => t.id !== btn.getAttribute("data-del-task"));
     scheduleSave("tasks"); renderTasks(root);
   }));
+  root.querySelectorAll("[data-edit-task]").forEach(el => el.addEventListener("click", () => {
+    openTaskModal(el.getAttribute("data-edit-task"));
+  }));
 }
 
 /* =========================================================================
@@ -1248,6 +1296,46 @@ function renderHabits(root) {
   const today = todayISO();
   const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
 
+  function openHabitModal(habitId) {
+    const h = data.habits.find(h => h.id === habitId);
+    if (!h) return;
+    openModal(`
+      <div class="modal-header"><h3>Gewohnheit bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
+      <form id="modal-habit-form">
+        <div class="field"><label>Name</label><input name="name" value="${escapeHtml(h.name)}" required></div>
+        <div class="field"><label>Frequenz</label>
+          <select name="frequency">
+            <option value="daily" ${h.frequency === "daily" ? "selected" : ""}>Täglich</option>
+            <option value="weekly" ${h.frequency === "weekly" ? "selected" : ""}>Wöchentlich</option>
+          </select>
+        </div>
+        <div class="field"><label>Ziel Tage/Woche</label><input type="number" name="targetDaysPerWeek" min="1" max="7" value="${h.targetDaysPerWeek}"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn danger" id="modal-delete-btn">Löschen</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn" id="modal-cancel-btn">Abbrechen</button>
+            <button class="btn primary" type="submit">Speichern</button>
+          </div>
+        </div>
+      </form>
+    `, box => {
+      box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-delete-btn").addEventListener("click", () => {
+        data.habits = data.habits.filter(x => x.id !== habitId);
+        delete data.checkins[habitId];
+        scheduleSave("habits"); closeModal(); renderHabits(root);
+      });
+      box.querySelector("#modal-habit-form").addEventListener("submit", e => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        h.name = f.get("name"); h.frequency = f.get("frequency");
+        h.targetDaysPerWeek = Number(f.get("targetDaysPerWeek")) || 7;
+        scheduleSave("habits"); closeModal(); renderHabits(root);
+      });
+    });
+  }
+
   root.innerHTML = `
     <div class="section-header"><h1>Gewohnheiten &amp; Routinen</h1></div>
     <div class="card">
@@ -1271,7 +1359,7 @@ function renderHabits(root) {
         return `
         <div class="habit-row">
           <div class="habit-check ${doneToday ? "done" : ""}" data-toggle-habit="${h.id}">${doneToday ? "✓" : ""}</div>
-          <div style="flex:1;">
+          <div class="entry-title" style="flex:1;" data-edit-habit="${h.id}">
             <div>${escapeHtml(h.name)}</div>
             <div class="streak">${h.frequency === "daily" ? `🔥 ${streak} Tage Streak` : `${weekCount}/${h.targetDaysPerWeek} diese Woche`}</div>
           </div>
@@ -1302,6 +1390,9 @@ function renderHabits(root) {
     data.habits = data.habits.filter(h => h.id !== id);
     delete data.checkins[id];
     scheduleSave("habits"); renderHabits(root);
+  }));
+  root.querySelectorAll("[data-edit-habit]").forEach(el => el.addEventListener("click", () => {
+    openHabitModal(el.getAttribute("data-edit-habit"));
   }));
 }
 
