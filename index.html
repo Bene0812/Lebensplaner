@@ -209,6 +209,7 @@ details.setup-help code { background: var(--bg); padding: 1px 5px; border-radius
 
 .form-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
 .form-inline .field { margin-bottom: 0; flex: 1; min-width: 120px; }
+.form-inline .event-date-hint { flex-basis: 100%; margin-top: -2px; }
 
 .progress-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
 .progress-bar > div { height: 100%; background: var(--accent); }
@@ -935,11 +936,31 @@ function occursOn(event, dateISO) {
     default: return false;
   }
 }
-function birthdayAge(event, occursOnISO) {
-  const born = new Date(event.date + "T00:00:00").getFullYear();
-  const on = new Date(occursOnISO + "T00:00:00").getFullYear();
+function computeAge(birthISO, refISO) {
+  if (!birthISO) return null;
+  const born = new Date(birthISO + "T00:00:00").getFullYear();
+  const on = new Date((refISO || todayISO()) + "T00:00:00").getFullYear();
   const age = on - born;
   return age > 0 ? age : null;
+}
+function birthdayAge(event, occursOnISO) {
+  return computeAge(event.date, occursOnISO);
+}
+function refreshBirthdayFields(form) {
+  const typeSel = form.querySelector('[name="type"]');
+  const dateInput = form.querySelector('[name="date"]');
+  const label = form.querySelector(".event-date-label");
+  const hint = form.querySelector(".event-date-hint");
+  if (!typeSel || !dateInput || !label || !hint) return;
+  const isBirthday = typeSel.value === "birthday";
+  label.textContent = isBirthday ? "Geburtsdatum" : "Datum";
+  if (isBirthday) {
+    hint.style.display = "block";
+    const age = computeAge(dateInput.value, todayISO());
+    hint.textContent = age !== null ? `Wird dieses Jahr ${age} Jahre alt.` : "Jahr wird für die automatische Altersberechnung verwendet.";
+  } else {
+    hint.style.display = "none";
+  }
 }
 
 function renderCalendar(root) {
@@ -962,7 +983,7 @@ function renderCalendar(root) {
     cells += `
       <div class="cal-cell ${!inMonth ? "other-month" : ""} ${iso === today ? "today" : ""}" data-day="${iso}">
         <div class="daynum">${cellDate.getDate()}</div>
-        ${dayEvents.slice(0, 3).map(e => `<div class="cal-event ${e.type === "deadline" ? "deadline" : ""} ${e.type === "birthday" ? "birthday" : ""}" data-edit-event="${e.id}">${e.type === "birthday" ? "🎂 " : ""}${escapeHtml(e.title)}</div>`).join("")}
+        ${dayEvents.slice(0, 3).map(e => `<div class="cal-event ${e.type === "deadline" ? "deadline" : ""} ${e.type === "birthday" ? "birthday" : ""}" data-edit-event="${e.id}">${e.type === "birthday" ? `🎂 ${escapeHtml(e.title)}${birthdayAge(e, iso) ? " (" + birthdayAge(e, iso) + ")" : ""}` : escapeHtml(e.title)}</div>`).join("")}
         ${dayEvents.length > 3 ? `<div class="meta">+${dayEvents.length - 3} mehr</div>` : ""}
       </div>`;
   }
@@ -997,7 +1018,7 @@ function renderCalendar(root) {
       <div class="modal-header"><h3>Termin bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
       <form id="modal-event-form">
         <div class="field"><label>Titel</label><input name="title" value="${escapeHtml(ev.title)}" required></div>
-        <div class="field"><label>Datum</label><input type="date" name="date" value="${ev.date}" required></div>
+        <div class="field"><label class="event-date-label">Datum</label><input type="date" name="date" value="${ev.date}" required><div class="hint event-date-hint" style="display:none;"></div></div>
         <div class="field"><label>Uhrzeit</label><input type="time" name="time" value="${ev.time || ""}"></div>
         <div class="field"><label>Typ</label>
           <select name="type" id="modal-event-type">${typeOptions.map(o => `<option value="${o.value}" ${ev.type === o.value ? "selected" : ""}>${o.label}</option>`).join("")}</select>
@@ -1016,9 +1037,13 @@ function renderCalendar(root) {
     `, box => {
       box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
       box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      const modalForm = box.querySelector("#modal-event-form");
       box.querySelector("#modal-event-type").addEventListener("change", e => {
         if (e.target.value === "birthday") box.querySelector("#modal-event-freq").value = "yearly";
+        refreshBirthdayFields(modalForm);
       });
+      modalForm.querySelector('[name="date"]').addEventListener("input", () => refreshBirthdayFields(modalForm));
+      refreshBirthdayFields(modalForm);
       box.querySelector("#modal-delete-btn").addEventListener("click", () => {
         data.events = data.events.filter(e => e.id !== eventId);
         scheduleSave("calendar"); closeModal(); renderCalendar(root);
@@ -1058,7 +1083,7 @@ function renderCalendar(root) {
       <h3>Termin hinzufügen</h3>
       <form id="event-form" class="form-inline">
         <div class="field"><label>Titel</label><input name="title" required></div>
-        <div class="field"><label>Datum</label><input type="date" name="date" value="${today}" required></div>
+        <div class="field"><label class="event-date-label">Datum</label><input type="date" name="date" value="${today}" required></div>
         <div class="field"><label>Uhrzeit</label><input type="time" name="time"></div>
         <div class="field"><label>Typ</label>
           <select name="type" id="event-type-select">${typeOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join("")}</select>
@@ -1067,6 +1092,7 @@ function renderCalendar(root) {
           <select name="freq" id="event-freq-select">${freqOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join("")}</select>
         </div>
         <button class="btn primary" type="submit">Hinzufügen</button>
+        <div class="hint event-date-hint" style="display:none;"></div>
       </form>
     </div>
   `;
@@ -1079,7 +1105,9 @@ function renderCalendar(root) {
   }));
   root.querySelector("#event-type-select").addEventListener("change", e => {
     if (e.target.value === "birthday") root.querySelector("#event-freq-select").value = "yearly";
+    refreshBirthdayFields(root.querySelector("#event-form"));
   });
+  root.querySelector('#event-form [name="date"]').addEventListener("input", () => refreshBirthdayFields(root.querySelector("#event-form")));
   root.querySelectorAll("[data-edit-event]").forEach(el => el.addEventListener("click", ev => {
     ev.stopPropagation();
     openEventModal(el.getAttribute("data-edit-event"));
