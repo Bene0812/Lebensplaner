@@ -239,7 +239,7 @@ table.data-table td.num { text-align: right; }
 .cal-cell.today { border-color: var(--accent); border-width: 2px; }
 .cal-cell.other-month { opacity: 0.4; }
 .cal-cell .daynum { font-weight: 700; margin-bottom: 2px; }
-.cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .cal-event.deadline { background: var(--danger); }
 .cal-event.birthday { background: #b6329c; }
 .badge.birthday { background: rgba(182,50,156,0.15); color: #b6329c; }
@@ -859,6 +859,7 @@ function renderGoals(root) {
    VIEW: CALENDAR
    ========================================================================= */
 let calCursor = new Date(); calCursor.setDate(1);
+let editingEventId = null;
 
 function occursOn(event, dateISO) {
   if (!event.recurring) return event.date === dateISO;
@@ -900,7 +901,7 @@ function renderCalendar(root) {
     cells += `
       <div class="cal-cell ${!inMonth ? "other-month" : ""} ${iso === today ? "today" : ""}" data-day="${iso}">
         <div class="daynum">${cellDate.getDate()}</div>
-        ${dayEvents.slice(0, 3).map(e => `<div class="cal-event ${e.type === "deadline" ? "deadline" : ""} ${e.type === "birthday" ? "birthday" : ""}">${e.type === "birthday" ? "🎂 " : ""}${escapeHtml(e.title)}</div>`).join("")}
+        ${dayEvents.slice(0, 3).map(e => `<div class="cal-event ${e.type === "deadline" ? "deadline" : ""} ${e.type === "birthday" ? "birthday" : ""}" data-edit-event="${e.id}">${e.type === "birthday" ? "🎂 " : ""}${escapeHtml(e.title)}</div>`).join("")}
         ${dayEvents.length > 3 ? `<div class="meta">+${dayEvents.length - 3} mehr</div>` : ""}
       </div>`;
   }
@@ -912,6 +913,22 @@ function renderCalendar(root) {
     data.events.forEach(e => { if (occursOn(e, iso)) upcoming.push({ ...e, occursOn: iso }); });
   }
   upcoming.sort((a, b) => a.occursOn.localeCompare(b.occursOn));
+
+  const editingEvent = editingEventId ? data.events.find(e => e.id === editingEventId) : null;
+  const typeOptions = [
+    { value: "appointment", label: "Termin" },
+    { value: "deadline", label: "Deadline" },
+    { value: "birthday", label: "Geburtstag 🎂" },
+    { value: "event", label: "Event" }
+  ];
+  const freqOptions = [
+    { value: "", label: "Keine" },
+    { value: "daily", label: "Täglich" },
+    { value: "weekly", label: "Wöchentlich" },
+    { value: "monthly", label: "Monatlich" },
+    { value: "yearly", label: "Jährlich" }
+  ];
+  const editingFreq = editingEvent?.recurring?.freq || "";
 
   root.innerHTML = `
     <div class="section-header"><h1>Kalender &amp; Zeitplanung</h1></div>
@@ -930,22 +947,23 @@ function renderCalendar(root) {
       <h3>Nächste 14 Tage</h3>
       ${upcoming.length === 0 ? '<div class="empty-hint">Keine anstehenden Termine.</div>' : `
       <ul class="list">
-        ${upcoming.map(e => `<li>${e.type === "birthday" ? "🎂 " : ""}${escapeHtml(e.title)} <span class="meta">${fmtDate(e.occursOn)}${e.time ? " · " + e.time : ""} ${e.type === "deadline" ? '<span class="badge high">Deadline</span>' : ""} ${e.type === "birthday" ? `<span class="badge birthday">Geburtstag${birthdayAge(e, e.occursOn) ? " · wird " + birthdayAge(e, e.occursOn) : ""}</span>` : ""}</span> <button class="icon-btn" data-del-event="${e.id}" style="margin-left:auto;">🗑</button></li>`).join("")}
+        ${upcoming.map(e => `<li>${e.type === "birthday" ? "🎂 " : ""}${escapeHtml(e.title)} <span class="meta">${fmtDate(e.occursOn)}${e.time ? " · " + e.time : ""} ${e.type === "deadline" ? '<span class="badge high">Deadline</span>' : ""} ${e.type === "birthday" ? `<span class="badge birthday">Geburtstag${birthdayAge(e, e.occursOn) ? " · wird " + birthdayAge(e, e.occursOn) : ""}</span>` : ""}</span> <button class="icon-btn" data-edit-event="${e.id}" style="margin-left:auto;">✎</button><button class="icon-btn" data-del-event="${e.id}">🗑</button></li>`).join("")}
       </ul>`}
     </div>
     <div class="card" id="event-form-card">
-      <h3>Termin hinzufügen</h3>
+      <h3>${editingEvent ? "Termin bearbeiten" : "Termin hinzufügen"}</h3>
       <form id="event-form" class="form-inline">
-        <div class="field"><label>Titel</label><input name="title" required></div>
-        <div class="field"><label>Datum</label><input type="date" name="date" value="${today}" required></div>
-        <div class="field"><label>Uhrzeit</label><input type="time" name="time"></div>
+        <div class="field"><label>Titel</label><input name="title" value="${escapeHtml(editingEvent?.title || "")}" required></div>
+        <div class="field"><label>Datum</label><input type="date" name="date" value="${editingEvent?.date || today}" required></div>
+        <div class="field"><label>Uhrzeit</label><input type="time" name="time" value="${editingEvent?.time || ""}"></div>
         <div class="field"><label>Typ</label>
-          <select name="type" id="event-type-select"><option value="appointment">Termin</option><option value="deadline">Deadline</option><option value="birthday">Geburtstag 🎂</option><option value="event">Event</option></select>
+          <select name="type" id="event-type-select">${typeOptions.map(o => `<option value="${o.value}" ${editingEvent && editingEvent.type === o.value ? "selected" : ""}>${o.label}</option>`).join("")}</select>
         </div>
         <div class="field"><label>Wiederholung</label>
-          <select name="freq" id="event-freq-select"><option value="">Keine</option><option value="daily">Täglich</option><option value="weekly">Wöchentlich</option><option value="monthly">Monatlich</option><option value="yearly">Jährlich</option></select>
+          <select name="freq" id="event-freq-select">${freqOptions.map(o => `<option value="${o.value}" ${editingFreq === o.value ? "selected" : ""}>${o.label}</option>`).join("")}</select>
         </div>
-        <button class="btn primary" type="submit">Hinzufügen</button>
+        <button class="btn primary" type="submit">${editingEvent ? "Speichern" : "Hinzufügen"}</button>
+        ${editingEvent ? '<button type="button" class="btn" id="event-cancel-btn">Abbrechen</button>' : ""}
       </form>
     </div>
   `;
@@ -959,18 +977,36 @@ function renderCalendar(root) {
   root.querySelector("#event-type-select").addEventListener("change", e => {
     if (e.target.value === "birthday") root.querySelector("#event-freq-select").value = "yearly";
   });
+  root.querySelectorAll("[data-edit-event]").forEach(el => el.addEventListener("click", ev => {
+    ev.stopPropagation();
+    editingEventId = el.getAttribute("data-edit-event");
+    renderCalendar(root);
+    root.querySelector("#event-form-card").scrollIntoView({ behavior: "smooth", block: "center" });
+  }));
+  const cancelBtn = root.querySelector("#event-cancel-btn");
+  if (cancelBtn) cancelBtn.addEventListener("click", () => { editingEventId = null; renderCalendar(root); });
   root.querySelector("#event-form").addEventListener("submit", e => {
     e.preventDefault();
     const f = new FormData(e.target);
     const freq = f.get("freq");
-    data.events.push({
-      id: uid(), title: f.get("title"), date: f.get("date"), time: f.get("time") || null,
-      type: f.get("type"), recurring: freq ? { freq } : null, notes: ""
-    });
+    if (editingEventId) {
+      const ev = data.events.find(ev => ev.id === editingEventId);
+      if (ev) {
+        ev.title = f.get("title"); ev.date = f.get("date"); ev.time = f.get("time") || null;
+        ev.type = f.get("type"); ev.recurring = freq ? { freq } : null;
+      }
+      editingEventId = null;
+    } else {
+      data.events.push({
+        id: uid(), title: f.get("title"), date: f.get("date"), time: f.get("time") || null,
+        type: f.get("type"), recurring: freq ? { freq } : null, notes: ""
+      });
+    }
     scheduleSave("calendar"); renderCalendar(root);
   });
   root.querySelectorAll("[data-del-event]").forEach(btn => btn.addEventListener("click", () => {
     data.events = data.events.filter(e => e.id !== btn.getAttribute("data-del-event"));
+    if (editingEventId === btn.getAttribute("data-del-event")) editingEventId = null;
     scheduleSave("calendar"); renderCalendar(root);
   }));
 }
