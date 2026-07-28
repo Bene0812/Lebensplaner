@@ -420,7 +420,6 @@ const MODULES = [
   { key: "habits",    label: "Gewohnheiten", icon: "🔁", file: "data/habits.json" },
   { key: "finances",  label: "Finanzen", icon: "💰", file: "data/finances.json" },
   { key: "journal",   label: "Journal & Reflexion", icon: "📓", file: "data/journal.json" },
-  { key: "learning",  label: "Lernen & Wachstum", icon: "📚", file: "data/learning.json" },
   { key: "settings",  label: "Einstellungen", icon: "⚙️" },
 ];
 const DATA_MODULES = MODULES.filter(m => m.file);
@@ -443,8 +442,7 @@ const DEFAULTS = {
   },
   habits: { habits: [], checkins: {} },
   finances: { budgets: [], expenses: [], savingsGoals: [] },
-  journal: { entries: [] },
-  learning: { books: [], courses: [], skills: [] }
+  journal: { entries: [] }
 };
 
 /* =========================================================================
@@ -744,7 +742,6 @@ function renderView() {
     habits: renderHabits,
     finances: renderFinances,
     journal: renderJournal,
-    learning: renderLearning,
     settings: renderSettings
   };
   content.innerHTML = "";
@@ -1560,104 +1557,6 @@ function renderJournal(root) {
   root.querySelectorAll("[data-del-entry]").forEach(btn => btn.addEventListener("click", () => {
     data.entries = data.entries.filter(e => e.id !== btn.getAttribute("data-del-entry"));
     scheduleSave("journal"); renderJournal(root);
-  }));
-}
-
-/* =========================================================================
-   VIEW: LEARNING (Lernen & Wachstum)
-   ========================================================================= */
-function renderLearning(root) {
-  const data = STATE.learning;
-  root.innerHTML = `
-    <div class="section-header"><h1>Lernen &amp; Wachstum</h1></div>
-    <div class="grid-3">
-      <div class="card">
-        <h3>📖 Bücher</h3>
-        <form id="book-form">
-          <div class="field"><input name="title" placeholder="Titel" required></div>
-          <div class="field"><input name="author" placeholder="Autor"></div>
-          <div class="field"><select name="status"><option value="to_read">Ungelesen</option><option value="reading">Am Lesen</option><option value="done">Gelesen</option></select></div>
-          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
-        </form>
-        <ul class="list" style="margin-top:10px;">
-          ${data.books.length === 0 ? '<li class="empty-hint">Keine Bücher.</li>' : data.books.map(b => `
-            <li><span style="flex:1;">${escapeHtml(b.title)}<br><span class="meta">${escapeHtml(b.author || "")}</span></span>
-            <select data-book-status="${b.id}">
-              <option value="to_read" ${b.status === "to_read" ? "selected" : ""}>Ungelesen</option>
-              <option value="reading" ${b.status === "reading" ? "selected" : ""}>Am Lesen</option>
-              <option value="done" ${b.status === "done" ? "selected" : ""}>Gelesen</option>
-            </select>
-            <button class="icon-btn" data-del-book="${b.id}">🗑</button></li>`).join("")}
-        </ul>
-      </div>
-      <div class="card">
-        <h3>🎓 Kurse</h3>
-        <form id="course-form">
-          <div class="field"><input name="name" placeholder="Kursname" required></div>
-          <div class="field"><input name="provider" placeholder="Anbieter"></div>
-          <div class="field"><input type="number" name="progress" min="0" max="100" placeholder="Fortschritt %"></div>
-          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
-        </form>
-        <ul class="list" style="margin-top:10px;">
-          ${data.courses.length === 0 ? '<li class="empty-hint">Keine Kurse.</li>' : data.courses.map(c => `
-            <li><span style="flex:1;">${escapeHtml(c.name)}<br><span class="meta">${escapeHtml(c.provider || "")}</span>
-              <div class="progress-bar" style="margin-top:4px;"><div style="width:${c.progress || 0}%"></div></div>
-            </span><button class="icon-btn" data-del-course="${c.id}">🗑</button></li>`).join("")}
-        </ul>
-      </div>
-      <div class="card">
-        <h3>🛠 Skill-Ziele</h3>
-        <form id="skill-form">
-          <div class="field"><input name="name" placeholder="Skill" required></div>
-          <div class="field"><input type="number" name="currentLevel" min="1" max="5" placeholder="Aktuell (1-5)"></div>
-          <div class="field"><input type="number" name="targetLevel" min="1" max="5" placeholder="Ziel (1-5)"></div>
-          <button class="btn primary" type="submit" style="width:100%;">Hinzufügen</button>
-        </form>
-        <ul class="list" style="margin-top:10px;">
-          ${data.skills.length === 0 ? '<li class="empty-hint">Keine Skill-Ziele.</li>' : data.skills.map(s => `
-            <li><span style="flex:1;">${escapeHtml(s.name)}<br><span class="meta">Level ${s.currentLevel || "?"} → ${s.targetLevel || "?"}</span></span><button class="icon-btn" data-del-skill="${s.id}">🗑</button></li>`).join("")}
-        </ul>
-      </div>
-    </div>
-  `;
-
-  root.querySelector("#book-form").addEventListener("submit", e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    data.books.push({ id: uid(), title: f.get("title"), author: f.get("author") || "", status: f.get("status"), rating: null, notes: "" });
-    e.target.reset();
-    scheduleSave("learning"); renderLearning(root);
-  });
-  root.querySelector("#course-form").addEventListener("submit", e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    data.courses.push({ id: uid(), name: f.get("name"), provider: f.get("provider") || "", progress: Number(f.get("progress")) || 0, status: "active", notes: "" });
-    e.target.reset();
-    scheduleSave("learning"); renderLearning(root);
-  });
-  root.querySelector("#skill-form").addEventListener("submit", e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    data.skills.push({ id: uid(), name: f.get("name"), currentLevel: Number(f.get("currentLevel")) || null, targetLevel: Number(f.get("targetLevel")) || null, notes: "" });
-    e.target.reset();
-    scheduleSave("learning"); renderLearning(root);
-  });
-  root.querySelectorAll("[data-book-status]").forEach(sel => sel.addEventListener("change", () => {
-    const b = data.books.find(b => b.id === sel.getAttribute("data-book-status"));
-    if (b) b.status = sel.value;
-    scheduleSave("learning");
-  }));
-  root.querySelectorAll("[data-del-book]").forEach(btn => btn.addEventListener("click", () => {
-    data.books = data.books.filter(b => b.id !== btn.getAttribute("data-del-book"));
-    scheduleSave("learning"); renderLearning(root);
-  }));
-  root.querySelectorAll("[data-del-course]").forEach(btn => btn.addEventListener("click", () => {
-    data.courses = data.courses.filter(c => c.id !== btn.getAttribute("data-del-course"));
-    scheduleSave("learning"); renderLearning(root);
-  }));
-  root.querySelectorAll("[data-del-skill]").forEach(btn => btn.addEventListener("click", () => {
-    data.skills = data.skills.filter(s => s.id !== btn.getAttribute("data-del-skill"));
-    scheduleSave("learning"); renderLearning(root);
   }));
 }
 

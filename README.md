@@ -13,7 +13,7 @@ Eine persönliche, zentrale Lebensplaner-Web-App als Single-File-HTML-App (kein 
 ## Entscheidungen zu den offenen Punkten
 
 **1. Struktur der JSON-Dateien: eine Datei pro Modul.**
-Statt einer großen Datei gibt es `data/goals.json`, `data/calendar.json`, `data/tasks.json`, `data/habits.json`, `data/finances.json`, `data/journal.json`, `data/learning.json`. Vorteile: kleinere, nachvollziehbare Commits pro Änderung, geringeres Risiko sich gegenseitig überschreibender Schreibvorgänge zwischen Modulen, und jedes Modul kann unabhängig debounced gespeichert werden, ohne dass ein Tippen im Journal einen gleichzeitigen Kalender-Edit blockiert.
+Statt einer großen Datei gibt es `data/goals.json`, `data/calendar.json`, `data/tasks.json`, `data/habits.json`, `data/finances.json`, `data/journal.json`. Vorteile: kleinere, nachvollziehbare Commits pro Änderung, geringeres Risiko sich gegenseitig überschreibender Schreibvorgänge zwischen Modulen, und jedes Modul kann unabhängig debounced gespeichert werden, ohne dass ein Tippen im Journal einen gleichzeitigen Kalender-Edit blockiert.
 
 **2. UI-Struktur: Sidebar (Desktop) / Bottom-Tab-Bar (Mobile).**
 Eine feste Sidebar links mit allen Modulen für Desktop-Nutzung, die bei schmalen Viewports (< 760px) zu einer unteren Tab-Leiste wird – das ist auf dem Handy der bekannteste und daumenfreundlichste Navigationsstil. Navigation erfolgt über Hash-Routing (`#/dashboard`, `#/goals`, …), sodass die App eine echte Single-Page-App ohne Reload bleibt.
@@ -44,9 +44,8 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Gewohnheiten & Routinen | `data/habits.json` | Habit-Tracker mit Streaks (täglich) bzw. Wochenzielen |
 | Finanzen | `data/finances.json` | Budgets, Ausgaben, Sparziele mit Fortschrittsbalken |
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
-| Lernen & Wachstum | `data/learning.json` | Bücherliste, Kurse mit Fortschritt, Skill-Ziele |
 
-Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales.
+Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
 
 ## Sicherheitshinweis
 
