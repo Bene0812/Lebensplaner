@@ -250,6 +250,14 @@ table.data-table td.num { text-align: right; }
 .cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .entry-title { cursor: pointer; }
 .entry-title:hover { text-decoration: underline; }
+
+.chat-card { display: flex; flex-direction: column; height: 60vh; min-height: 360px; padding: 0; overflow: hidden; }
+.chat-log { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.chat-bubble { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+.chat-bubble.user { align-self: flex-end; background: var(--accent); color: var(--accent-contrast); border-bottom-right-radius: 4px; }
+.chat-bubble.bot { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.chat-input-row { display: flex; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.chat-input-row input { flex: 1; padding: 9px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); color: var(--text); }
 .cal-event.deadline { background: var(--danger); }
 .cal-event.birthday { background: #b6329c; }
 .badge.birthday { background: rgba(182,50,156,0.15); color: #b6329c; }
@@ -420,6 +428,7 @@ const MODULES = [
   { key: "habits",    label: "Gewohnheiten", icon: "🔁", file: "data/habits.json" },
   { key: "finances",  label: "Finanzen", icon: "💰", file: "data/finances.json" },
   { key: "journal",   label: "Journal & Reflexion", icon: "📓", file: "data/journal.json" },
+  { key: "assistant", label: "KI-Assistent", icon: "🤖" },
   { key: "settings",  label: "Einstellungen", icon: "⚙️" },
 ];
 const DATA_MODULES = MODULES.filter(m => m.file);
@@ -742,6 +751,7 @@ function renderView() {
     habits: renderHabits,
     finances: renderFinances,
     journal: renderJournal,
+    assistant: renderAssistant,
     settings: renderSettings
   };
   content.innerHTML = "";
@@ -1558,6 +1568,216 @@ function renderJournal(root) {
     data.entries = data.entries.filter(e => e.id !== btn.getAttribute("data-del-entry"));
     scheduleSave("journal"); renderJournal(root);
   }));
+}
+
+/* =========================================================================
+   VIEW: ASSISTANT (KI-Assistent)
+   ========================================================================= */
+const CHATLOG_KEY = "lebensplaner:chatlog";
+let chatLog = loadChatLog();
+
+function loadChatLog() {
+  try {
+    const raw = localStorage.getItem(CHATLOG_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function persistChatLog() {
+  localStorage.setItem(CHATLOG_KEY, JSON.stringify(chatLog.slice(-100)));
+}
+function addChatMessage(role, text) {
+  chatLog.push({ role, text });
+  persistChatLog();
+}
+
+function isoFromParts(y, m, d) {
+  return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+function isoFromDate(d) {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+function parseAssistantCommand(rawText) {
+  let text = " " + rawText.trim() + " ";
+
+  let forcedType = null;
+  const prefixMatch = text.match(/^\s*(aufgabe|todo|to-do|termin|geburtstag|deadline|gewohnheit|routine)\s*:\s*/i);
+  if (prefixMatch) {
+    const p = prefixMatch[1].toLowerCase();
+    if (p === "aufgabe" || p === "todo" || p === "to-do") forcedType = "task";
+    else if (p === "termin") forcedType = "appointment";
+    else if (p === "geburtstag") forcedType = "birthday";
+    else if (p === "deadline") forcedType = "deadline";
+    else if (p === "gewohnheit" || p === "routine") forcedType = "habit";
+    text = " " + text.slice(prefixMatch[0].length);
+  }
+
+  // --- Date extraction ---
+  let dateISO = null;
+  const relMatch = text.match(/\b(übermorgen|morgen|heute)\b/i);
+  if (relMatch) {
+    const d = new Date();
+    if (/übermorgen/i.test(relMatch[1])) d.setDate(d.getDate() + 2);
+    else if (/morgen/i.test(relMatch[1])) d.setDate(d.getDate() + 1);
+    dateISO = isoFromDate(d);
+    text = text.replace(relMatch[0], " ");
+  }
+  const weekdays = ["sonntag", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag"];
+  if (!dateISO) {
+    const wdMatch = text.match(/\b(nächsten|kommenden)?\s?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i);
+    if (wdMatch) {
+      const targetIdx = weekdays.indexOf(wdMatch[2].toLowerCase());
+      const d = new Date();
+      do { d.setDate(d.getDate() + 1); } while (d.getDay() !== targetIdx);
+      dateISO = isoFromDate(d);
+      text = text.replace(wdMatch[0], " ");
+    }
+  }
+  if (!dateISO) {
+    const dmY = text.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})\b/);
+    if (dmY) {
+      const year = dmY[3].length === 2 ? 2000 + parseInt(dmY[3], 10) : parseInt(dmY[3], 10);
+      dateISO = isoFromParts(year, parseInt(dmY[2], 10), parseInt(dmY[1], 10));
+      text = text.replace(dmY[0], " ");
+    } else {
+      const dm = text.match(/\b(\d{1,2})\.(\d{1,2})\.?\b/);
+      if (dm) {
+        const year = new Date().getFullYear();
+        let candidate = isoFromParts(year, parseInt(dm[2], 10), parseInt(dm[1], 10));
+        if (candidate < todayISO()) candidate = isoFromParts(year + 1, parseInt(dm[2], 10), parseInt(dm[1], 10));
+        dateISO = candidate;
+        text = text.replace(dm[0], " ");
+      }
+    }
+  }
+
+  // --- Time extraction ---
+  let time = null;
+  const tm = text.match(/\b(\d{1,2}):(\d{2})\b/);
+  if (tm) {
+    time = String(tm[1]).padStart(2, "0") + ":" + tm[2];
+    text = text.replace(tm[0], " ");
+  } else {
+    const tm2 = text.match(/\b(\d{1,2})\s?Uhr\b/i);
+    if (tm2) {
+      time = String(tm2[1]).padStart(2, "0") + ":00";
+      text = text.replace(tm2[0], " ");
+    }
+  }
+  text = text.replace(/\bum\b/gi, " ");
+
+  // --- Module / type detection ---
+  let calType = ["appointment", "birthday", "deadline"].includes(forcedType) ? forcedType : null;
+  let module = forcedType === "task" ? "task" : forcedType === "habit" ? "habit" : calType ? "calendar" : null;
+
+  if (!module) {
+    if (/\bgeburtstag\b/i.test(text)) { module = "calendar"; calType = "birthday"; text = text.replace(/\bgeburtstag\b/i, " "); }
+    else if (/\bdeadline\b/i.test(text)) { module = "calendar"; calType = "deadline"; text = text.replace(/\bdeadline\b/i, " "); }
+    else if (/\b(täglich|jeden tag|wöchentlich|jede woche|gewohnheit|routine)\b/i.test(text)) { module = "habit"; }
+    else if (/\b(kaufen|erledigen|anrufen|abholen|bezahlen|buchen|senden|kümmern|organisieren|besorgen|reparieren|aufgabe|todo)\b/i.test(text)) { module = "task"; }
+    else if (dateISO) { module = "calendar"; calType = "appointment"; }
+    else { module = "task"; }
+  }
+
+  // --- Habit frequency ---
+  let habitFreq = "daily";
+  let targetDaysPerWeek = 7;
+  if (module === "habit") {
+    if (/\b(wöchentlich|jede woche)\b/i.test(text)) { habitFreq = "weekly"; targetDaysPerWeek = 3; }
+    const freqNumMatch = text.match(/(\d+)\s?(x|mal)\s?(pro|die|in der)?\s?woche/i);
+    if (freqNumMatch) {
+      habitFreq = "weekly";
+      targetDaysPerWeek = Math.min(7, parseInt(freqNumMatch[1], 10));
+      text = text.replace(freqNumMatch[0], " ");
+    }
+    text = text.replace(/\b(täglich|jeden tag|wöchentlich|jede woche|gewohnheit|routine)\b/gi, " ");
+  }
+
+  // --- Title cleanup ---
+  text = text.replace(/\s{2,}/g, " ").replace(/^[\s,.:;-]+|[\s,.:;-]+$/g, "").trim();
+  if (!text) text = rawText.trim();
+  const title = text.charAt(0).toUpperCase() + text.slice(1);
+
+  return { module, title, dateISO, time, calType, habitFreq, targetDaysPerWeek };
+}
+
+const CAL_TYPE_LABEL = { appointment: "Termin", deadline: "Deadline", birthday: "Geburtstag" };
+
+function executeAssistantCommand(parsed) {
+  if (parsed.module === "calendar") {
+    if (!parsed.dateISO) {
+      return "Ich konnte kein Datum erkennen. Beispiel: \"15.10 Zahnarzt\" oder \"Termin: morgen 14:00 Friseur\".";
+    }
+    STATE.calendar.events.push({
+      id: uid(), title: parsed.title, date: parsed.dateISO, time: parsed.time,
+      type: parsed.calType || "appointment",
+      recurring: parsed.calType === "birthday" ? { freq: "yearly" } : null,
+      notes: ""
+    });
+    scheduleSave("calendar");
+    return `✅ ${CAL_TYPE_LABEL[parsed.calType || "appointment"]} "${parsed.title}" am ${fmtDate(parsed.dateISO)}${parsed.time ? " um " + parsed.time : ""} im Kalender eingetragen.`;
+  }
+  if (parsed.module === "task") {
+    STATE.tasks.tasks.push({
+      id: uid(), title: parsed.title, projectId: "inbox", priority: "medium",
+      dueDate: parsed.dateISO || null, done: false, createdAt: todayISO(), notes: ""
+    });
+    scheduleSave("tasks");
+    return `✅ Aufgabe "${parsed.title}"${parsed.dateISO ? " (fällig " + fmtDate(parsed.dateISO) + ")" : ""} angelegt.`;
+  }
+  if (parsed.module === "habit") {
+    const id = uid();
+    STATE.habits.habits.push({ id, name: parsed.title, frequency: parsed.habitFreq, targetDaysPerWeek: parsed.targetDaysPerWeek, createdAt: todayISO() });
+    STATE.habits.checkins[id] = [];
+    scheduleSave("habits");
+    return `✅ Gewohnheit "${parsed.title}" (${parsed.habitFreq === "daily" ? "täglich" : parsed.targetDaysPerWeek + "x/Woche"}) angelegt.`;
+  }
+  return "Das habe ich leider nicht verstanden.";
+}
+
+function renderAssistant(root) {
+  if (chatLog.length === 0) {
+    addChatMessage("bot", "Hallo! Schreib mir z. B. \"15.10 Zahnarzt\", \"Milch kaufen\" oder \"täglich meditieren\" und ich lege den passenden Eintrag im Kalender, bei den Aufgaben oder bei den Gewohnheiten an.");
+  }
+
+  root.innerHTML = `
+    <div class="section-header"><h1>KI-Assistent</h1></div>
+    <div class="card chat-card">
+      <div class="chat-log" id="chat-log">
+        ${chatLog.map(m => `<div class="chat-bubble ${m.role}">${escapeHtml(m.text)}</div>`).join("")}
+      </div>
+      <form id="chat-form" class="chat-input-row">
+        <input type="text" name="text" placeholder="z. B. 15.10 Zahnarzt" autocomplete="off" required>
+        <button class="btn primary" type="submit">Senden</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Beispiele</h3>
+      <ul class="list">
+        <li>15.10 Zahnarzt <span class="meta" style="margin-left:auto;">→ Termin im Kalender</span></li>
+        <li>Milch kaufen <span class="meta" style="margin-left:auto;">→ Aufgabe</span></li>
+        <li>täglich meditieren <span class="meta" style="margin-left:auto;">→ Gewohnheit</span></li>
+        <li>Geburtstag: Mama 14.05.1970 <span class="meta" style="margin-left:auto;">→ Geburtstag inkl. Altersberechnung</span></li>
+        <li>Deadline: Steuererklärung 30.06 <span class="meta" style="margin-left:auto;">→ Deadline im Kalender</span></li>
+      </ul>
+    </div>
+  `;
+
+  const log = root.querySelector("#chat-log");
+  log.scrollTop = log.scrollHeight;
+
+  root.querySelector("#chat-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const input = e.target.querySelector('[name="text"]');
+    const text = input.value.trim();
+    if (!text) return;
+    addChatMessage("user", text);
+    const parsed = parseAssistantCommand(text);
+    const reply = executeAssistantCommand(parsed);
+    addChatMessage("bot", reply);
+    input.value = "";
+    renderAssistant(root);
+  });
 }
 
 /* =========================================================================

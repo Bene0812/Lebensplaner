@@ -44,8 +44,13 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Gewohnheiten & Routinen | `data/habits.json` | Habit-Tracker mit Streaks (täglich) bzw. Wochenzielen |
 | Finanzen | `data/finances.json` | Budgets, Ausgaben, Sparziele mit Fortschrittsbalken |
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
+| KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
+
+### KI-Assistent
+
+Der Assistent läuft komplett offline über einen regelbasierten Mini-Parser (keine externe KI, kein API-Key, funktioniert auf jedem Gerät ohne Download). Er erkennt Datum (`15.10`, `15.10.2026`, `morgen`, `nächsten Montag`, …), Uhrzeit sowie Schlüsselwörter, um zwischen Termin, Aufgabe und Gewohnheit zu unterscheiden – z. B. Verben wie "kaufen"/"erledigen" für Aufgaben oder "täglich"/"wöchentlich" für Gewohnheiten. Mit expliziten Präfixen (`Termin:`, `Aufgabe:`, `Gewohnheit:`, `Geburtstag:`, `Deadline:`) lässt sich der Zieltyp erzwingen, falls die Heuristik danebenliegt. Der Chatverlauf wird nur lokal im Browser gespeichert (nicht im GitHub-Repo synchronisiert).
 
 ## Sicherheitshinweis
 
