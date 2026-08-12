@@ -127,6 +127,8 @@ details.setup-help { margin-top: 20px; font-size: 13px; color: var(--text-muted)
 details.setup-help summary { cursor: pointer; font-weight: 600; color: var(--text); }
 details.setup-help ol { padding-left: 20px; margin: 8px 0; }
 details.setup-help code { background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+.setup-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 14px 0; color: var(--text-muted); font-size: 12px; }
+.setup-divider::before, .setup-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 /* ---------- Main layout ---------- */
 #main-layout { display: flex; min-height: 100vh; }
@@ -385,6 +387,9 @@ textarea.journal-text { min-height: 100px; resize: vertical; }
         <li>Erstelle den Token und f&uuml;ge ihn oben ein.</li>
       </ol>
     </details>
+    <div class="setup-divider"><span>oder</span></div>
+    <button type="button" class="btn" id="demo-mode-btn" style="width:100%; justify-content:center;">🧪 Demo-Modus starten (nur lokal, kein GitHub nötig)</button>
+    <p class="hint" style="margin-top:8px; text-align:center;">Speichert nur in diesem Browser (localStorage), kein Sync zwischen Geräten. Gut zum Ausprobieren.</p>
   </div>
 </div>
 
@@ -635,6 +640,18 @@ function loadShas() {
 function persistShas() {
   localStorage.setItem(SHA_KEY, JSON.stringify(SHAS));
 }
+function demoLoadFile(filePath) {
+  try {
+    const raw = localStorage.getItem("lebensplaner:demo:" + filePath);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function demoSaveFile(filePath, dataObj) {
+  localStorage.setItem("lebensplaner:demo:" + filePath, JSON.stringify(dataObj));
+}
+function clearDemoData() {
+  DATA_MODULES.forEach(m => localStorage.removeItem("lebensplaner:demo:" + m.file));
+}
 
 /* =========================================================================
    SYNC ENGINE
@@ -650,9 +667,9 @@ function renderSyncIndicator() {
   else if (states.includes("error")) overall = "error";
   else if (states.includes("pending")) overall = "pending";
 
-  const label = {
-    synced: "Synchronisiert", pending: "Speichere...", error: "Sync-Fehler", loading: "Lade..."
-  }[overall];
+  const label = CONFIG?.demo
+    ? { synced: "Lokal gespeichert (Demo)", pending: "Speichere...", error: "Speicherfehler", loading: "Lade..." }[overall]
+    : { synced: "Synchronisiert", pending: "Speichere...", error: "Sync-Fehler", loading: "Lade..." }[overall];
 
   const dot = document.querySelector("#sync-indicator .dot");
   const text = document.getElementById("sync-text");
@@ -669,7 +686,13 @@ async function loadAllModules() {
   DATA_MODULES.forEach(m => setSyncStatus(m.key, "loading"));
   await Promise.all(DATA_MODULES.map(async m => {
     try {
-      const { data, sha } = await ghGetFile(m.file);
+      let data, sha = null;
+      if (CONFIG.demo) {
+        data = demoLoadFile(m.file);
+      } else {
+        const res = await ghGetFile(m.file);
+        data = res.data; sha = res.sha;
+      }
       STATE[m.key] = data || JSON.parse(JSON.stringify(DEFAULTS[m.key]));
       SHAS[m.file] = sha;
       setSyncStatus(m.key, "synced");
@@ -693,9 +716,13 @@ async function saveModule(moduleKey) {
   const mod = DATA_MODULES.find(m => m.key === moduleKey);
   if (!mod) return;
   try {
-    const sha = await ghPutFile(mod.file, STATE[moduleKey], SHAS[mod.file], `Update ${mod.file} via Lebensplaner`);
-    SHAS[mod.file] = sha;
-    persistShas();
+    if (CONFIG.demo) {
+      demoSaveFile(mod.file, STATE[moduleKey]);
+    } else {
+      const sha = await ghPutFile(mod.file, STATE[moduleKey], SHAS[mod.file], `Update ${mod.file} via Lebensplaner`);
+      SHAS[mod.file] = sha;
+      persistShas();
+    }
     setSyncStatus(moduleKey, "synced");
   } catch (err) {
     console.error(err);
@@ -1784,6 +1811,27 @@ function renderAssistant(root) {
    VIEW: SETTINGS
    ========================================================================= */
 function renderSettings(root) {
+  if (CONFIG.demo) {
+    root.innerHTML = `
+      <div class="section-header"><h1>Einstellungen</h1></div>
+      <div class="card">
+        <h3>Demo-Modus aktiv</h3>
+        <p>Alle Daten werden nur lokal in diesem Browser gespeichert (<code>localStorage</code>) &ndash; kein GitHub, kein Sync zwischen Geräten. Ideal zum Ausprobieren, aber Daten gehen bei einem Cache-/Browserdaten-Reset verloren.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn danger" id="btn-exit-demo">Demo-Modus beenden</button>
+        </div>
+      </div>
+    `;
+    root.querySelector("#btn-exit-demo").addEventListener("click", () => {
+      if (confirm("Demo-Modus beenden? Alle lokal gespeicherten Demo-Daten werden gelöscht.")) {
+        clearDemoData();
+        clearConfig();
+        location.reload();
+      }
+    });
+    return;
+  }
+
   root.innerHTML = `
     <div class="section-header"><h1>Einstellungen</h1></div>
     <div class="card">
@@ -1856,6 +1904,12 @@ function initSetupForm() {
       statusBox.classList.add("hidden");
       submitBtn.disabled = false;
     }
+  });
+
+  document.getElementById("demo-mode-btn").addEventListener("click", async () => {
+    CONFIG = { demo: true };
+    saveConfig(CONFIG);
+    await boot();
   });
 }
 

@@ -9,6 +9,7 @@ Eine persönliche, zentrale Lebensplaner-Web-App als Single-File-HTML-App (kein 
 - **Datenspeicherung & Sync**: Kein eigenes Backend. Alle Daten liegen als JSON-Dateien in einem **privaten** GitHub-Repository deiner Wahl und werden direkt über die GitHub REST Contents API gelesen/geschrieben.
 - **Auth**: Ein GitHub Personal Access Token (PAT) mit minimalen Rechten (nur Contents Read/Write auf das eine Daten-Repo). Der Token wird einmalig pro Gerät eingegeben und ausschließlich lokal im `localStorage` des Browsers gespeichert – nie im Code oder im Repo selbst.
 - **Sync-Verhalten**: Beim Öffnen der App werden alle Modul-JSON-Dateien vom konfigurierten Repo geladen. Bei jeder Änderung wird das betroffene Modul (debounced, ~900ms) automatisch als neuer Commit zurückgeschrieben. Konfliktverhalten: "letzter Schreibvorgang gewinnt" – bei einem veralteten `sha` (z. B. weil von einem anderen Gerät zwischenzeitlich geschrieben wurde) holt die App automatisch den aktuellen `sha` und überschreibt damit erneut.
+- **Demo-Modus**: Auf dem Setup-Screen gibt es zusätzlich einen "Demo-Modus starten"-Button, der komplett ohne GitHub auskommt und stattdessen nur in `localStorage` speichert. Kein Sync zwischen Geräten, aber nützlich zum schnellen Ausprobieren (z. B. in Umgebungen ohne ausgehende Netzwerkverbindung wie eingebetteten Vorschauen) oder als rein lokales Single-Device-Tool ohne Cloud-Anbindung. Über Einstellungen → "Demo-Modus beenden" werden die lokalen Demo-Daten wieder gelöscht.
 
 ## Entscheidungen zu den offenen Punkten
 
