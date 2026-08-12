@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lebensplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #f4f5f7;
@@ -356,6 +359,887 @@ textarea.journal-text { min-height: 100px; resize: vertical; }
   #bottom-nav .icon { font-size: 18px; }
   .grid-3 { grid-template-columns: 1fr; }
 }
+
+/* =========================================================================
+   SPANISCH LERNEN (Vale) - scoped unter .vale-app
+   ========================================================================= */
+.vale-app{
+    --espresso:#241B15;
+    --espresso-mid:#362820;
+    --espresso-well:rgba(0,0,0,0.22);
+    --crema:#F2E6D3;
+    --crema-dim:rgba(242,230,211,0.62);
+    --crema-faint:rgba(242,230,211,0.36);
+    --cherry:#C2394C;
+    --cherry-deep:#9E2D3D;
+    --sage:#9DBB84;
+    --sage-deep:#7A9862;
+    --gold:#D6A445;
+    --line:rgba(242,230,211,0.12);
+    --shadow:0 4px 18px rgba(0,0,0,0.28);
+    --radius-lg:22px;
+    --radius-md:16px;
+    --radius-sm:11px;
+  }
+.vale-app *{box-sizing:border-box;}
+.vale-app{
+    font-family:'Karla', sans-serif;
+    color:var(--crema);
+    display:flex;
+    justify-content:center;
+    padding:4px 0 20px 0;
+  }
+.vale-app .app{
+    width:100%;
+    max-width:520px;
+    height:78vh;
+    min-height:560px;
+    max-height:860px;
+    display:flex;
+    flex-direction:column;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,0.35);
+    background:
+      radial-gradient(ellipse 70% 40% at 50% -6%, rgba(194,57,76,0.16), transparent 60%),
+      var(--espresso);
+    color:var(--crema);
+  }
+.vale-app .screen{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    width:100%;
+  }
+.vale-app .screen-body{
+    flex:1;
+    overflow-y:auto;
+    padding:18px;
+  }
+.vale-app .back-btn{
+    width:36px; height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition:border-color .15s, color .15s;
+  }
+.vale-app .back-btn:hover{ border-color:var(--sage); color:var(--sage); }
+.vale-app /* HAUPTMENÜ */
+  .home-screen{
+    overflow-y:auto;
+    padding:32px 22px 24px;
+    align-items:stretch;
+  }
+.vale-app .home-header{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:4px;
+    margin-bottom:30px;
+  }
+.vale-app .home-title{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:27px;
+    color:var(--crema);
+    margin-top:12px;
+  }
+.vale-app .home-sub{
+    font-size:13px;
+    color:var(--crema-dim);
+  }
+.vale-app .home-header .streak-pill{ margin-top:12px; }
+.vale-app .menu-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+.vale-app .menu-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px;
+    background:var(--espresso-mid);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    cursor:pointer;
+    text-align:left;
+    font-family:'Karla', sans-serif;
+    transition:border-color .15s, transform .1s;
+  }
+.vale-app .menu-card:hover{ border-color:var(--sage); }
+.vale-app .menu-card:active{ transform:scale(0.98); }
+.vale-app .menu-card-icon{
+    width:46px; height:46px;
+    border-radius:14px;
+    background:var(--espresso-well);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    flex-shrink:0;
+  }
+.vale-app .menu-card-text{ flex:1; min-width:0; }
+.vale-app .menu-card-title{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:16px;
+    color:var(--crema);
+  }
+.vale-app .menu-card-sub{
+    font-size:12.5px;
+    color:var(--crema-dim);
+    margin-top:2px;
+  }
+.vale-app .menu-card-arrow{
+    font-size:18px;
+    color:var(--crema-faint);
+    flex-shrink:0;
+  }
+.vale-app .topics-intro{
+    font-size:13px;
+    color:var(--crema-dim);
+    line-height:1.5;
+    margin-bottom:16px;
+  }
+.vale-app /* HEADER */
+  .header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:16px 18px;
+    background:var(--espresso-mid);
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+.vale-app .avatar{ flex-shrink:0; }
+.vale-app .header-text{ flex:1; min-width:0; }
+.vale-app .header-name{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    line-height:1.15;
+    color:var(--crema);
+  }
+.vale-app .header-sub{
+    font-size:12px;
+    color:var(--crema-dim);
+    margin-top:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+.vale-app .streak-pill{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:7px 10px;
+    background:var(--espresso-well);
+    border:1px solid var(--line);
+    border-radius:20px;
+    font-weight:700;
+    font-size:13.5px;
+    color:var(--gold);
+    flex-shrink:0;
+  }
+.vale-app .settings-btn{
+    position:relative;
+    width:36px; height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition:border-color .15s, color .15s;
+  }
+.vale-app .settings-btn:hover{ border-color:var(--sage); color:var(--sage); }
+.vale-app .vocab-badge{
+    position:absolute;
+    top:-3px; right:-3px;
+    min-width:16px; height:16px;
+    padding:0 4px;
+    border-radius:8px;
+    background:var(--cherry);
+    color:var(--crema);
+    font-size:9.5px;
+    font-weight:700;
+    line-height:16px;
+    text-align:center;
+    display:none;
+  }
+.vale-app /* CHAT */
+  .chat{
+    flex:1;
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+.vale-app .chat::-webkit-scrollbar{ width:7px; }
+.vale-app .chat::-webkit-scrollbar-thumb{ background:var(--espresso-mid); border-radius:4px; }
+.vale-app .msg-row{ display:flex; flex-direction:column; max-width:82%; }
+.vale-app .msg-row.bot{ align-self:flex-start; }
+.vale-app .msg-row.user{ align-self:flex-end; }
+.vale-app .bubble{
+    padding:11px 15px;
+    border-radius:var(--radius-md);
+    font-size:15px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+.vale-app .msg-row.bot .bubble{
+    background:var(--espresso-mid);
+    border:1px solid var(--line);
+    border-bottom-left-radius:5px;
+    box-shadow:var(--shadow);
+  }
+.vale-app .msg-row.user .bubble{
+    background:var(--cherry);
+    color:var(--crema);
+    border-bottom-right-radius:5px;
+  }
+.vale-app .msg-meta{ margin-top:5px; display:flex; }
+.vale-app .msg-row.user .msg-meta{ justify-content:flex-end; }
+.vale-app .translate-btn{
+    border:none;
+    background:none;
+    color:var(--sage);
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px 5px;
+    border-radius:8px;
+    font-family:inherit;
+  }
+.vale-app .translate-btn:hover{ background:rgba(157,187,132,0.12); }
+.vale-app .translate-btn:disabled{ opacity:0.55; cursor:default; }
+.vale-app .speak-btn{
+    border:none;
+    background:none;
+    color:var(--gold);
+    cursor:pointer;
+    padding:2px 5px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+  }
+.vale-app .speak-btn:hover{ background:rgba(214,164,69,0.15); }
+.vale-app .translation{
+    margin-top:5px;
+    padding:9px 13px;
+    border-radius:var(--radius-sm);
+    background:var(--espresso-mid);
+    border-left:3px solid var(--sage);
+    font-size:13.5px;
+    color:var(--crema-dim);
+    font-style:italic;
+    display:none;
+  }
+.vale-app .translation.open{ display:block; }
+.vale-app .typing-row{
+    align-self:flex-start;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--crema-dim);
+    font-style:italic;
+    padding:2px 4px;
+  }
+@keyframes steamRise {
+    0%{ opacity:0; transform:translateY(3px); }
+    45%{ opacity:0.9; transform:translateY(-2px); }
+    100%{ opacity:0; transform:translateY(-6px); }
+  }
+.vale-app .steam-line{ animation:steamRise 1.6s ease-in-out infinite; }
+.vale-app .steam-line.s2{ animation-delay:0.5s; }
+.vale-app /* INPUT */
+  .input-bar{
+    display:flex;
+    gap:10px;
+    padding:14px 16px 18px;
+    background:var(--espresso-mid);
+    border-top:1px solid var(--line);
+    flex-shrink:0;
+  }
+.vale-app .input-bar input{
+    flex:1;
+    background:var(--espresso-well);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:11px 16px;
+    color:var(--crema);
+    font-family:'Karla', sans-serif;
+    font-size:15px;
+    outline:none;
+  }
+.vale-app .input-bar input::placeholder{ color:var(--crema-faint); }
+.vale-app .input-bar input:focus{ border-color:var(--cherry); }
+.vale-app .send-btn{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:none;
+    background:var(--cherry);
+    color:var(--crema);
+    font-size:16px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition:transform .1s ease, background .15s;
+  }
+.vale-app .send-btn:hover{ background:var(--cherry-deep); }
+.vale-app .send-btn:active{ transform:scale(0.93); }
+.vale-app .send-btn:disabled{ opacity:0.5; cursor:default; }
+.vale-app .send-btn:focus-visible, .vale-app .settings-btn:focus-visible, .vale-app .level-btn:focus-visible, .vale-app .translate-btn:focus-visible, .vale-app .mic-btn:focus-visible{
+    outline:2px solid var(--sage); outline-offset:2px;
+  }
+.vale-app .mic-btn{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+.vale-app .mic-btn:hover{ border-color:var(--gold); color:var(--gold); }
+.vale-app .mic-btn.recording{
+    background:var(--cherry);
+    border-color:var(--cherry);
+    color:var(--crema);
+    animation:micPulse 1.4s infinite;
+  }
+@keyframes micPulse {
+    0%{ box-shadow:0 0 0 0 rgba(194,57,76,0.55); }
+    70%{ box-shadow:0 0 0 9px rgba(194,57,76,0); }
+    100%{ box-shadow:0 0 0 0 rgba(194,57,76,0); }
+  }
+.vale-app /* SETTINGS OVERLAY */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(10,7,5,0.62);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:10;
+  }
+.vale-app .overlay.open{ display:flex; }
+.vale-app .overlay-card{
+    background:var(--espresso-mid);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    max-width:420px;
+    width:100%;
+    max-height:84vh;
+    overflow-y:auto;
+    padding:24px 22px 22px;
+    position:relative;
+  }
+.vale-app .overlay-close{
+    position:absolute;
+    top:16px; right:16px;
+    width:30px; height:30px;
+    border-radius:50%;
+    border:none;
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    cursor:pointer;
+    font-size:13px;
+  }
+.vale-app .overlay-card h2{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    margin:0 0 18px;
+    color:var(--crema);
+  }
+.vale-app .overlay-card h3{
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--crema-dim);
+    margin:20px 0 8px;
+  }
+.vale-app .overlay-card h3:first-of-type{ margin-top:0; }
+.vale-app .level-grid{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+  }
+.vale-app .level-btn{
+    flex:1 1 auto;
+    min-width:44px;
+    padding:8px 0;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+.vale-app .level-btn:hover{ border-color:var(--sage); }
+.vale-app .level-btn.active{
+    background:var(--cherry);
+    border-color:var(--cherry);
+    color:var(--crema);
+  }
+.vale-app .level-desc{
+    font-size:13px;
+    line-height:1.5;
+    color:var(--crema-dim);
+    margin:10px 0 0;
+    min-height:34px;
+  }
+.vale-app .tips-list{
+    margin:2px 0 0;
+    padding-left:18px;
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--crema);
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+.vale-app .reset-btn{
+    margin-top:22px;
+    width:100%;
+    padding:10px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+.vale-app .reset-btn:hover{ border-color:var(--cherry); color:var(--cherry); }
+.vale-app .reset-confirm{
+    display:none;
+    margin-top:10px;
+    padding:13px;
+    border-radius:12px;
+    background:var(--espresso-well);
+  }
+.vale-app .reset-confirm.open{ display:block; }
+.vale-app .reset-confirm p{ margin:0 0 10px; font-size:13px; color:var(--crema); }
+.vale-app .reset-confirm-btns{ display:flex; gap:8px; }
+.vale-app .reset-confirm-btns button{
+    flex:1;
+    padding:9px 0;
+    border-radius:10px;
+    border:none;
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+.vale-app #resetYes{ background:var(--cherry); color:var(--crema); }
+.vale-app #resetNo{ background:var(--espresso-mid); color:var(--crema); border:1px solid var(--line); }
+.vale-app /* VOKABELLISTE */
+  .vocab-empty{
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--crema-dim);
+    padding:4px 0 2px;
+  }
+.vale-app .vocab-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+.vale-app .vocab-item{
+    position:relative;
+    background:var(--espresso-well);
+    border-radius:var(--radius-sm);
+    padding:10px 58px 10px 13px;
+  }
+.vale-app .vocab-item.editing{ padding:12px 13px; }
+.vale-app .vocab-correction{
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--sage);
+  }
+.vale-app .vocab-original{
+    font-size:12px;
+    color:var(--crema-faint);
+    margin-left:7px;
+  }
+.vale-app .vocab-translation{
+    font-size:13px;
+    color:var(--crema-dim);
+    margin-top:3px;
+    font-style:italic;
+  }
+.vale-app .vocab-remove, .vale-app .vocab-edit-btn{
+    position:absolute;
+    top:8px;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:var(--crema-faint);
+    font-size:12px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+.vale-app .vocab-remove{ right:8px; }
+.vale-app .vocab-edit-btn{ right:32px; }
+.vale-app .vocab-remove:hover{ color:var(--cherry); }
+.vale-app .vocab-edit-btn:hover{ color:var(--sage); }
+.vale-app .vocab-edit-label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--crema-faint);
+    margin:9px 0 3px;
+  }
+.vale-app .vocab-edit-label:first-child{ margin-top:0; }
+.vale-app .vocab-edit-input{
+    width:100%;
+    background:var(--espresso);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 10px;
+    color:var(--crema);
+    font-family:'Karla', sans-serif;
+    font-size:13px;
+    outline:none;
+  }
+.vale-app .vocab-edit-input:focus{ border-color:var(--sage); }
+.vale-app .vocab-edit-btns{
+    display:flex;
+    gap:8px;
+    margin-top:11px;
+  }
+.vale-app .vocab-edit-btns button{
+    flex:1;
+    padding:8px 0;
+    border-radius:10px;
+    border:none;
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+.vale-app .vocab-save-btn{ background:var(--sage); color:var(--espresso); }
+.vale-app .vocab-cancel-btn{ background:var(--espresso-mid); color:var(--crema); border:1px solid var(--line); }
+.vale-app .vocab-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+.vale-app .vocab-tab{
+    flex:1;
+    padding:9px 0;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+.vale-app .vocab-tab:hover{ border-color:var(--sage); }
+.vale-app .vocab-tab.active{
+    background:var(--sage);
+    border-color:var(--sage);
+    color:var(--espresso);
+  }
+.vale-app .vocab-type-toggle{
+    display:flex;
+    gap:6px;
+    margin-top:2px;
+  }
+.vale-app .vocab-type-toggle button{
+    flex:1;
+    padding:6px 0;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--espresso);
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+.vale-app .vocab-type-toggle button.active{
+    background:var(--sage);
+    border-color:var(--sage);
+    color:var(--espresso);
+  }
+.vale-app /* VOKABEL-QUIZ */
+  .quiz-mode-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+.vale-app .quiz-mode-toggle button{
+    flex:1;
+    padding:8px 0;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--espresso-well);
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+.vale-app .quiz-mode-toggle button:hover{ border-color:var(--gold); }
+.vale-app .quiz-mode-toggle button.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:var(--espresso);
+  }
+.vale-app .quiz-setup-count{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--crema-dim);
+    margin-bottom:16px;
+  }
+.vale-app .quiz-write-wrap{
+    width:100%;
+    margin-top:14px;
+  }
+.vale-app .quiz-write-input{
+    width:100%;
+    background:var(--espresso);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    color:var(--crema);
+    font-family:'Karla', sans-serif;
+    font-size:14px;
+    outline:none;
+    text-align:center;
+  }
+.vale-app .quiz-write-input:focus{ border-color:var(--gold); }
+.vale-app .quiz-user-answer{
+    font-size:13px;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+.vale-app .quiz-user-answer.correct{ color:var(--sage); }
+.vale-app .quiz-user-answer.wrong{ color:var(--cherry); }
+.vale-app .quiz-start-btn{
+    width:100%;
+    padding:11px 0;
+    margin-bottom:0;
+    border-radius:12px;
+    border:1px solid var(--sage);
+    background:rgba(157,187,132,0.12);
+    color:var(--sage);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+.vale-app .quiz-start-btn:hover{ background:rgba(157,187,132,0.22); }
+.vale-app .quiz-start-btn:disabled{ opacity:0.4; cursor:default; background:rgba(157,187,132,0.12); }
+.vale-app .import-btn{
+    width:100%;
+    padding:11px 0;
+    margin-bottom:16px;
+    border-radius:12px;
+    border:1px solid var(--gold);
+    background:rgba(214,164,69,0.12);
+    color:var(--gold);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+.vale-app .import-btn:hover{ background:rgba(214,164,69,0.22); }
+.vale-app .import-panel{
+    margin-bottom:16px;
+    padding:14px;
+    border-radius:var(--radius-md);
+    background:var(--espresso-well);
+  }
+.vale-app .import-hint{
+    font-size:12.5px;
+    color:var(--crema-dim);
+    line-height:1.5;
+    margin:0 0 10px;
+  }
+.vale-app .import-file-input{
+    display:block;
+    width:100%;
+    margin-bottom:10px;
+    font-size:12.5px;
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+  }
+.vale-app .import-textarea{
+    width:100%;
+    min-height:100px;
+    background:var(--espresso);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    color:var(--crema);
+    font-family:'Karla', sans-serif;
+    font-size:13px;
+    resize:vertical;
+    outline:none;
+  }
+.vale-app .import-textarea:focus{ border-color:var(--sage); }
+.vale-app .import-btns{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+.vale-app .import-btns button{
+    flex:1;
+    padding:9px 0;
+    border-radius:10px;
+    border:none;
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+.vale-app .import-btns button:disabled{ opacity:0.5; cursor:default; }
+.vale-app .import-progress{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--crema-dim);
+    text-align:center;
+    min-height:16px;
+  }
+.vale-app .quiz-progress{
+    text-align:center;
+    font-size:12px;
+    color:var(--crema-dim);
+    font-weight:700;
+    letter-spacing:0.04em;
+    margin-bottom:12px;
+  }
+.vale-app .quiz-card{
+    background:var(--espresso-well);
+    border-radius:var(--radius-md);
+    padding:26px 20px;
+    text-align:center;
+    min-height:130px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+.vale-app .quiz-prompt-label{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--crema-faint);
+  }
+.vale-app .quiz-prompt-text{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    color:var(--crema);
+    line-height:1.35;
+  }
+.vale-app .quiz-answer-block{
+    margin-top:8px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+    width:100%;
+  }
+.vale-app .quiz-answer-text{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    color:var(--sage);
+  }
+.vale-app .quiz-answer-original{
+    font-size:12.5px;
+    color:var(--crema-faint);
+    margin-top:4px;
+  }
+.vale-app .quiz-reveal-btn{
+    margin-top:16px;
+    width:100%;
+    padding:11px 0;
+    border-radius:12px;
+    border:none;
+    background:var(--gold);
+    color:var(--espresso);
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+.vale-app .quiz-rate-btns{
+    margin-top:14px;
+    display:flex;
+    gap:8px;
+  }
+.vale-app .quiz-rate-btns button, .vale-app .quiz-done-btns button{
+    flex:1;
+    padding:11px 0;
+    border-radius:12px;
+    border:none;
+    font-family:'Karla', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+.vale-app .quiz-wrong-btn{ background:var(--espresso-mid); color:var(--crema); border:1px solid var(--line); }
+.vale-app .quiz-right-btn{ background:var(--sage); color:var(--espresso); }
+.vale-app .quiz-exit-btn{
+    margin-top:14px;
+    width:100%;
+    padding:9px 0;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--crema-dim);
+    font-family:'Karla', sans-serif;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+.vale-app .quiz-done{ text-align:center; padding:18px 0 4px; }
+.vale-app .quiz-done-emoji{ font-size:32px; margin-bottom:8px; }
+.vale-app .quiz-done-text{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    color:var(--crema);
+    margin-bottom:4px;
+  }
+.vale-app .quiz-done-sub{
+    font-size:13px;
+    color:var(--crema-dim);
+    margin-bottom:18px;
+  }
+.vale-app .quiz-done-btns{ display:flex; gap:8px; }
+@media (max-width:400px) {.vale-app .header{ padding:14px; gap:9px; }.vale-app .header-name{ font-size:17px; }.vale-app .header-sub{ font-size:11px; }}
 </style>
 </head>
 <body>
@@ -661,19 +1545,6 @@ function openGmailModal() {
 }
 
 /* =========================================================================
-   SPANISCH LERNEN POPUP
-   ========================================================================= */
-const SPANISH_LEARN_URL = "https://claude.ai/code/artifact/bb54687d-ace1-4164-9e4e-b402b2a2332d";
-
-function openSpanishPopup() {
-  const width = 1000, height = 700;
-  const left = Math.round((screen.width - width) / 2 + (screen.availLeft || 0));
-  const top = Math.round((screen.height - height) / 2 + (screen.availTop || 0));
-  const win = window.open(SPANISH_LEARN_URL, "spanisch-lernen", `width=${width},height=${height},left=${left},top=${top}`);
-  if (win) win.focus();
-}
-
-/* =========================================================================
    GITHUB API CLIENT
    ========================================================================= */
 async function ghRequest(path, options = {}) {
@@ -909,7 +1780,6 @@ function renderNav() {
     el.addEventListener("click", () => {
       const key = el.getAttribute("data-nav");
       if (key === "gmail") openGmailModal();
-      else if (key === "spanish") openSpanishPopup();
       else navigateTo(key);
     });
   });
@@ -925,6 +1795,7 @@ function renderView() {
     habits: renderHabits,
     finances: renderFinances,
     journal: renderJournal,
+    spanish: renderSpanish,
     assistant: renderAssistant,
     settings: renderSettings
   };
@@ -1952,6 +2823,1445 @@ function renderAssistant(root) {
     input.value = "";
     renderAssistant(root);
   });
+}
+
+/* =========================================================================
+   VIEW: SPANISCH LERNEN (Vale)
+   ========================================================================= */
+function renderSpanish(root) {
+  root.innerHTML = `<div class="vale-app">
+
+<div class="app">
+
+  <!-- HAUPTMENÜ -->
+  <div id="homeScreen" class="screen home-screen">
+    <div class="home-header">
+      <div class="avatar">
+        <svg viewBox="0 0 44 44" width="52" height="52">
+          <circle cx="22" cy="22" r="22" fill="var(--cherry)"/>
+          <path class="av-steam" d="M16.5 13.5c0-1.8 1.8-1.8 1.8-3.6s-1.8-1.8-1.8-3.6" stroke="var(--crema)" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path class="av-steam" d="M22.5 13.5c0-1.8 1.8-1.8 1.8-3.6s-1.8-1.8-1.8-3.6" stroke="var(--crema)" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path d="M12 18h15v6.5a7.5 7.5 0 0 1-15 0V18z" fill="var(--crema)"/>
+          <path d="M27 20h2.3a2.8 2.8 0 0 1 0 5.6H27" stroke="var(--crema)" stroke-width="1.6" fill="none"/>
+          <rect x="11" y="29" width="17" height="2.3" rx="1.15" fill="var(--crema)"/>
+        </svg>
+      </div>
+      <div class="home-title">Vale</div>
+      <div class="home-sub">Cafecito &amp; Charla · kolumbianisches Spanisch</div>
+      <div class="streak-pill" title="Tage in Folge geübt">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+          <path d="M4 9h10v3.5a5 5 0 0 1-10 0V9z" fill="var(--gold)"/>
+          <path d="M14 10h1.4a1.8 1.8 0 0 1 0 3.6H14" stroke="var(--gold)" stroke-width="1.3" fill="none"/>
+        </svg>
+        <span id="homeStreakNum">0</span>
+      </div>
+    </div>
+
+    <div class="menu-list">
+      <button type="button" class="menu-card" id="menuChatBtn">
+        <div class="menu-card-icon">💬</div>
+        <div class="menu-card-text">
+          <div class="menu-card-title">Chat mit Vale</div>
+          <div class="menu-card-sub">Frei auf Spanisch plaudern und üben</div>
+        </div>
+        <div class="menu-card-arrow">→</div>
+      </button>
+      <button type="button" class="menu-card" id="menuVocabBtn">
+        <div class="menu-card-icon">📖</div>
+        <div class="menu-card-text">
+          <div class="menu-card-title">Vokabelheft</div>
+          <div class="menu-card-sub" id="menuVocabSub">0 Wörter · 0 Sätze</div>
+        </div>
+        <div class="menu-card-arrow">→</div>
+      </button>
+      <button type="button" class="menu-card" id="menuQuizBtn">
+        <div class="menu-card-icon">🎯</div>
+        <div class="menu-card-text">
+          <div class="menu-card-title">Quiz</div>
+          <div class="menu-card-sub">Karteikarten oder Schreiben üben</div>
+        </div>
+        <div class="menu-card-arrow">→</div>
+      </button>
+      <button type="button" class="menu-card" id="menuRoleplayBtn">
+        <div class="menu-card-icon">🎭</div>
+        <div class="menu-card-text">
+          <div class="menu-card-title">Rollenspiel</div>
+          <div class="menu-card-sub">Alltagssituationen gezielt üben</div>
+        </div>
+        <div class="menu-card-arrow">→</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chatScreen" class="screen" style="display:none;">
+    <div class="header">
+      <button class="back-btn" id="chatBackBtn" aria-label="Zurück zum Menü">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="avatar">
+        <svg viewBox="0 0 44 44" width="40" height="40">
+          <circle cx="22" cy="22" r="22" fill="var(--cherry)"/>
+          <path class="av-steam" d="M16.5 13.5c0-1.8 1.8-1.8 1.8-3.6s-1.8-1.8-1.8-3.6" stroke="var(--crema)" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path class="av-steam" d="M22.5 13.5c0-1.8 1.8-1.8 1.8-3.6s-1.8-1.8-1.8-3.6" stroke="var(--crema)" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path d="M12 18h15v6.5a7.5 7.5 0 0 1-15 0V18z" fill="var(--crema)"/>
+          <path d="M27 20h2.3a2.8 2.8 0 0 1 0 5.6H27" stroke="var(--crema)" stroke-width="1.6" fill="none"/>
+          <rect x="11" y="29" width="17" height="2.3" rx="1.15" fill="var(--crema)"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <div class="header-name" id="chatHeaderName">Vale</div>
+        <div class="header-sub" id="chatHeaderSub">Cafecito &amp; Charla · kolumbianisches Spanisch</div>
+      </div>
+      <div class="streak-pill" title="Tage in Folge geübt">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+          <path d="M4 9h10v3.5a5 5 0 0 1-10 0V9z" fill="var(--gold)"/>
+          <path d="M14 10h1.4a1.8 1.8 0 0 1 0 3.6H14" stroke="var(--gold)" stroke-width="1.3" fill="none"/>
+        </svg>
+        <span id="streakNum">0</span>
+      </div>
+      <button class="settings-btn" id="settingsBtn" aria-label="Einstellungen öffnen">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="chat screen-body" id="chat"></div>
+
+    <div class="input-bar" id="inputBar">
+      <input type="text" id="userInput" placeholder="Escribe algo… (auch Deutsch ist ok!)" autocomplete="off" maxlength="400" enterkeyhint="send"/>
+      <button type="button" class="mic-btn" id="micBtn" aria-label="Spracheingabe">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+      <button type="button" class="send-btn" id="sendBtn" aria-label="Senden">➤</button>
+    </div>
+  </div>
+
+  <!-- VOKABELHEFT -->
+  <div id="vocabScreen" class="screen" style="display:none;">
+    <div class="header">
+      <button class="back-btn" id="vocabBackBtn" aria-label="Zurück zum Menü">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="header-text">
+        <div class="header-name">Vokabelheft</div>
+      </div>
+    </div>
+    <div class="screen-body" id="vocabBody">
+      <div id="vocabListView">
+        <button type="button" class="import-btn" id="importBtn">📥 Vokabeln importieren</button>
+        <div class="import-panel" id="importPanel" style="display:none;">
+          <p class="import-hint">Datei wählen oder Text einfügen – Spanisch und Deutsch pro Zeile, Reihenfolge und Zeilenumbrüche sind egal, Vale sortiert das korrekt.</p>
+          <input type="file" id="importFile" accept=".txt" class="import-file-input"/>
+          <textarea id="importText" class="import-textarea" placeholder="…oder hier einfügen"></textarea>
+          <div class="import-btns">
+            <button type="button" id="importGo" class="vocab-save-btn">Importieren</button>
+            <button type="button" id="importCancel" class="vocab-cancel-btn">Abbrechen</button>
+          </div>
+          <div class="import-progress" id="importProgress"></div>
+        </div>
+        <div class="vocab-tabs" id="vocabTabs">
+          <button type="button" class="vocab-tab active" data-tab="word">Wörter</button>
+          <button type="button" class="vocab-tab" data-tab="sentence">Sätze</button>
+        </div>
+        <div class="vocab-empty" id="vocabEmpty">Noch keine Vokabeln gesammelt – sobald Vale dich bei etwas korrigiert, landet das Wort automatisch hier.</div>
+        <div class="vocab-list" id="vocabList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quizScreen" class="screen" style="display:none;">
+    <div class="header">
+      <button class="back-btn" id="quizBackBtn" aria-label="Zurück zum Menü">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="header-text">
+        <div class="header-name" id="quizScreenTitle">Quiz</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div id="quizSetupView">
+        <div class="vocab-tabs" id="quizTabs">
+          <button type="button" class="vocab-tab active" data-tab="word">Wörter</button>
+          <button type="button" class="vocab-tab" data-tab="sentence">Sätze</button>
+        </div>
+        <div class="quiz-mode-toggle" id="quizModeToggle">
+          <button type="button" class="active" data-mode="flashcard">📇 Karteikarte</button>
+          <button type="button" data-mode="write">✍️ Schreiben</button>
+        </div>
+        <div class="quiz-setup-count" id="quizSetupCount"></div>
+        <button type="button" class="quiz-start-btn" id="quizStartBtn">🔁 Quiz starten</button>
+      </div>
+      <div id="quizView" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ROLLENSPIEL: THEMENAUSWAHL -->
+  <div id="topicsScreen" class="screen" style="display:none;">
+    <div class="header">
+      <button class="back-btn" id="topicsBackBtn" aria-label="Zurück zum Menü">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <div class="header-text">
+        <div class="header-name">Rollenspiel</div>
+      </div>
+    </div>
+    <div class="screen-body">
+      <div class="topics-intro">Wähl ein Thema – Vale eröffnet die Szene, du steigst einfach ein.</div>
+      <div class="menu-list" id="topicsList"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <button class="overlay-close" id="overlayClose" aria-label="Schließen">✕</button>
+    <h2>Einstellungen</h2>
+
+    <h3>Schwierigkeit</h3>
+    <div class="level-grid" id="levelGrid">
+      <button type="button" class="level-btn" data-level="A1">A1</button>
+      <button type="button" class="level-btn" data-level="A2">A2</button>
+      <button type="button" class="level-btn" data-level="B1">B1</button>
+      <button type="button" class="level-btn" data-level="B2">B2</button>
+      <button type="button" class="level-btn" data-level="C1">C1</button>
+    </div>
+    <p class="level-desc" id="levelDesc"></p>
+
+    <h3>Tipps</h3>
+    <ul class="tips-list">
+      <li>Antworte so gut es geht auf Spanisch – Fehler gehören dazu, Vale korrigiert dich automatisch und sanft.</li>
+      <li>Nicht jedes Wort verstehen müssen: auf den Sinn achten, den Rest per Übersetzen-Button klären.</li>
+      <li>Korrigierte Wörter und Sätze landen automatisch in deinem Vokabelheft im Hauptmenü.</li>
+      <li>Lieber kurz und täglich chatten als selten und lang – das hält auch deinen Streak am Leben.</li>
+    </ul>
+
+    <button type="button" class="reset-btn" id="resetBtn">Fortschritt zurücksetzen</button>
+    <div class="reset-confirm" id="resetConfirm">
+      <p>Chat, Streak, Level und deine Vokabelliste werden komplett gelöscht. Sicher?</p>
+      <div class="reset-confirm-btns">
+        <button type="button" id="resetYes">Ja, löschen</button>
+        <button type="button" id="resetNo">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+`;
+  initSpanishApp(root);
+}
+
+function initSpanishApp(root) {
+
+async function storageSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) { console.error('Speichern fehlgeschlagen', e); }
+}
+async function storageGet(key) {
+  try { return { value: localStorage.getItem(key) }; } catch (e) { return { value: null }; }
+}
+
+let state = {
+  level: 'A2',
+  streak: 0,
+  lastDate: null,
+  messages: [],
+  vocab: []
+};
+
+const chatEl = root.querySelector('#chat');
+const inputEl = root.querySelector('#userInput');
+const sendBtn = root.querySelector('#sendBtn');
+const streakNumEl = root.querySelector('#streakNum');
+const homeStreakNumEl = root.querySelector('#homeStreakNum');
+const settingsBtn = root.querySelector('#settingsBtn');
+const overlay = root.querySelector('#overlay');
+const overlayClose = root.querySelector('#overlayClose');
+const levelGrid = root.querySelector('#levelGrid');
+const levelDesc = root.querySelector('#levelDesc');
+const resetBtn = root.querySelector('#resetBtn');
+const resetConfirm = root.querySelector('#resetConfirm');
+const resetYes = root.querySelector('#resetYes');
+const resetNo = root.querySelector('#resetNo');
+const vocabEmpty = root.querySelector('#vocabEmpty');
+const vocabListEl = root.querySelector('#vocabList');
+const vocabTabsEl = root.querySelector('#vocabTabs');
+const importBtn = root.querySelector('#importBtn');
+const importPanel = root.querySelector('#importPanel');
+const importFileEl = root.querySelector('#importFile');
+const importTextEl = root.querySelector('#importText');
+const importGoBtn = root.querySelector('#importGo');
+const importCancelBtn = root.querySelector('#importCancel');
+const importProgressEl = root.querySelector('#importProgress');
+let importCancelled = false;
+const micBtn = root.querySelector('#micBtn');
+
+const quizViewEl = root.querySelector('#quizView');
+const quizSetupViewEl = root.querySelector('#quizSetupView');
+const quizStartBtn = root.querySelector('#quizStartBtn');
+const quizScreenTitleEl = root.querySelector('#quizScreenTitle');
+const quizTabsEl = root.querySelector('#quizTabs');
+const quizModeToggle = root.querySelector('#quizModeToggle');
+const quizSetupCountEl = root.querySelector('#quizSetupCount');
+
+const homeScreenEl = root.querySelector('#homeScreen');
+const chatScreenEl = root.querySelector('#chatScreen');
+const vocabScreenEl = root.querySelector('#vocabScreen');
+const quizScreenEl = root.querySelector('#quizScreen');
+const topicsScreenEl = root.querySelector('#topicsScreen');
+const menuChatBtn = root.querySelector('#menuChatBtn');
+const menuVocabBtn = root.querySelector('#menuVocabBtn');
+const menuVocabSubEl = root.querySelector('#menuVocabSub');
+const menuQuizBtn = root.querySelector('#menuQuizBtn');
+const menuRoleplayBtn = root.querySelector('#menuRoleplayBtn');
+const topicsListEl = root.querySelector('#topicsList');
+const topicsBackBtn = root.querySelector('#topicsBackBtn');
+const chatBackBtn = root.querySelector('#chatBackBtn');
+const vocabBackBtn = root.querySelector('#vocabBackBtn');
+const quizBackBtn = root.querySelector('#quizBackBtn');
+const chatHeaderNameEl = root.querySelector('#chatHeaderName');
+const chatHeaderSubEl = root.querySelector('#chatHeaderSub');
+let vocabActiveTab = 'word';
+
+
+const ttsSupported = 'speechSynthesis' in window;
+let cachedVoices = [];
+let speakingIdx = null;
+if (ttsSupported){
+  const loadVoices = () => { cachedVoices = window.speechSynthesis.getVoices(); };
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+const SPEAK_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>';
+const STOP_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"></rect></svg>';
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+const sttSupported = !!SpeechRecognitionAPI;
+let recognition = null;
+let isRecording = false;
+let micBaseText = '';
+const originalPlaceholder = inputEl.placeholder;
+
+if (sttSupported){
+  recognition = new SpeechRecognitionAPI();
+  recognition.lang = 'es-CO';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('recording');
+    inputEl.placeholder = 'Höre zu…';
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    inputEl.placeholder = originalPlaceholder;
+  };
+  recognition.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      inputEl.placeholder = 'Mikrofon nicht verfügbar – einfach eintippen';
+      setTimeout(() => { inputEl.placeholder = originalPlaceholder; }, 4000);
+    } else {
+      inputEl.placeholder = originalPlaceholder;
+    }
+    console.error('Spracherkennung fehlgeschlagen', e);
+  };
+  recognition.onresult = (event) => {
+    let finalTranscript = '';
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++){
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal){
+        finalTranscript += transcript;
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+    inputEl.value = (micBaseText + finalTranscript + interimTranscript).trim();
+  };
+
+  micBtn.addEventListener('click', () => {
+    if (isRecording){
+      recognition.stop();
+      return;
+    }
+    micBaseText = inputEl.value ? inputEl.value.trim() + ' ' : '';
+    try {
+      recognition.start();
+    } catch(e){
+      console.error('Konnte Aufnahme nicht starten', e);
+    }
+  });
+} else {
+  micBtn.style.display = 'none';
+}
+
+const LEVELS = {
+  A1: {
+    desc: 'Kurze, einfache Sätze. Nur Präsens, Grundwortschatz, kaum Umgangssprache.',
+    instruction: 'Nivel A1 (principiante absoluto). Usa frases MUY cortas y simples (máximo 6-8 palabras), solo presente de indicativo. Vocabulario muy básico y cotidiano (saludos, familia, comida, números, colores). Evita casi toda la jerga; si usas alguna palabra colombiana coloquial, que sea muy fácil y repítela para que se vuelva familiar (ej. "chévere", "listo"). Usa siempre "tú".'
+  },
+  A2: {
+    desc: 'Einfache Alltagssätze, erste Vergangenheitsform, wenig, leicht verständliche Umgangssprache.',
+    instruction: 'Nivel A2 (principiante con algo de base). Frases cortas y claras. Mayormente presente, pero puedes usar pretérito perfecto o pretérito simple en frases sencillas (ej. "ayer fui a...", "¿ya comiste?"). Vocabulario cotidiano algo más variado. Puedes soltar alguna expresión colombiana muy común y fácil de deducir por contexto (ej. "chévere", "qué más", "listo", "una nota", "bacano"), sin abusar. Usa "tú".'
+  },
+  B1: {
+    desc: 'Natürlicherer Chatstil, mehrere Zeitformen, gängige Redewendungen.',
+    instruction: 'Nivel B1 (intermedio). Habla como en un chat real entre amigos. Usa varios tiempos con naturalidad (presente, pasado, futuro simple). Incluye modismos colombianos comunes con más soltura (ej. "parce", "una vaina", "de una", "qué pena", "¿sí o qué?"), aclarando por contexto si alguno no es transparente.'
+  },
+  B2: {
+    desc: 'Flüssiger Chat, komplexere Sätze, viel Umgangssprache.',
+    instruction: 'Nivel B2 (intermedio alto). Escribe como chatearías de verdad con alguien de Colombia: natural, fluido, conectores variados, subjuntivo simple y condicional cuando venga natural. Usa modismos y jerga colombiana con soltura, sin simplificar en exceso. Puedes bromear y usar sarcasmo ligero.'
+  },
+  C1: {
+    desc: 'Wie unter Muttersprachlern – volles Tempo, Ironie, Redewendungen.',
+    instruction: 'Nivel C1 (avanzado). Escribe exactamente como con un/a amigo/a nativo/a colombiano/a: rápido, coloquial, con jerga, doble sentido, sarcasmo, referencias culturales y gramática compleja, sin ninguna simplificación.'
+  }
+};
+
+const TOPICS = [
+  {
+    id: 'cafe',
+    emoji: '☕',
+    name: 'Im Café / Restaurant',
+    scenario: 'Ahora estás actuando como mesera en un café/restaurante acogedor en Medellín. Mantén el rol de forma natural: recibe al cliente, recomienda platos o bebidas, toma su pedido, pregunta si quiere algo más, y si el usuario lo pide simula traer la cuenta. Sal del personaje solo si el usuario te lo pide explícitamente.',
+    openers: [
+      '¡Hola, bienvenido/a! ¿Mesa para uno o esperas a alguien más?',
+      '¡Buenas! ¿Ya sabes qué se te antoja o te traigo la carta?',
+      '¡Hola! Hoy tenemos un tinto buenísimo recién colado, ¿te provoca uno?'
+    ]
+  },
+  {
+    id: 'reisen',
+    emoji: '✈️',
+    name: 'Unterwegs & Reisen',
+    scenario: 'Ahora estás actuando como una viajera colombiana que el usuario se encuentra en una terminal de buses o aeropuerto. Pregúntale sobre su viaje, a dónde va, o pídele ayuda con algo (por ejemplo, no encuentras tu andén). Mantén el rol de forma natural y espontánea.',
+    openers: [
+      'Oye, disculpa, ¿tú sabes de dónde sale el bus para Cartagena?',
+      '¡Hola! ¿Tú también vas para Bogotá? Uy, qué nervios volar jaja, ¿y tú?',
+      'Perdona, ¿me regalas la hora? Creo que se me hace tarde para el vuelo.'
+    ]
+  },
+  {
+    id: 'familie',
+    emoji: '👪',
+    name: 'Familie & Freunde',
+    scenario: 'Ahora estás charlando con el usuario como una amiga curiosa que quiere saber de su familia y sus amigos. Haz preguntas cálidas y naturales sobre hermanos, padres, mejores amigos, etc. Mantén un tono cercano de charla real, no de interrogatorio.',
+    openers: [
+      'Oye, cuéntame, ¿tienes hermanos? Yo tengo dos y son un caos jaja.',
+      '¿Y tu familia, vive cerca de ti o están lejos?',
+      'Cuéntame de tu mejor amigo/a, ¿cómo se conocieron?'
+    ]
+  },
+  {
+    id: 'alltag',
+    emoji: '🏠',
+    name: 'Alltag & Zuhause',
+    scenario: 'Ahora estás charlando con el usuario sobre su vida cotidiana: cómo es un día normal, dónde vive, con quién, qué hace en su tiempo libre. Mantén un tono curioso y amigable, como una amiga preguntando por la rutina del otro.',
+    openers: [
+      '¿Cómo es un día normal para ti? Cuéntame desde que te levantas.',
+      '¿Vives solo/a o con alguien más? Yo vivo con mi gato y ya jaja.',
+      '¿Qué haces normalmente los fines de semana?'
+    ]
+  },
+  {
+    id: 'arbeit',
+    emoji: '💼',
+    name: 'Arbeit',
+    scenario: 'Ahora estás charlando con el usuario sobre trabajo. Puedes actuar como una colega curiosa preguntando en qué trabaja, o simular brevemente una entrevista de trabajo informal. Mantén el tono natural y no demasiado formal.',
+    openers: [
+      'Oye, ¿tú en qué trabajas? Cuéntame.',
+      '¿Te gusta tu trabajo o preferirías hacer otra cosa?',
+      'Bueno, cuéntame un poco de ti: ¿por qué te interesa este puesto?'
+    ]
+  },
+  {
+    id: 'einkaufen',
+    emoji: '🛍️',
+    name: 'Einkaufen',
+    scenario: 'Ahora estás actuando como vendedora en una tienda de ropa o mercado. Recibe al cliente, pregunta qué busca, ofrece ayuda con tallas o precios, y mantén el rol de forma natural y amable.',
+    openers: [
+      '¡Hola! ¿Buscas algo en especial o solo estás mirando?',
+      '¡Buenas! Esa camisa que tienes en la mano nos llegó nuevecita, ¿la quieres probar?',
+      '¿Te ayudo a encontrar tu talla?'
+    ]
+  }
+];
+
+let chatMode = 'free';
+let roleplayMessages = [];
+let currentTopic = null;
+function activeMessages(){ return chatMode === 'roleplay' ? roleplayMessages : state.messages; }
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function updateStreak(){
+  const today = todayStr();
+  if (state.lastDate === today){
+    // heute schon gezählt
+  } else {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+    state.streak = (state.lastDate === yesterday) ? state.streak + 1 : 1;
+    state.lastDate = today;
+  }
+  streakNumEl.textContent = state.streak;
+  homeStreakNumEl.textContent = state.streak;
+}
+
+function renderLevelUI(){
+  [...levelGrid.children].forEach(btn => btn.classList.toggle('active', btn.dataset.level === state.level));
+  levelDesc.textContent = LEVELS[state.level].desc;
+}
+
+let editingVocabIdx = null;
+
+function inferVocabType(entry){
+  if (entry.type === 'word' || entry.type === 'sentence') return entry.type;
+  const text = (entry.correction || '').trim();
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  // Kurze feste Ausdrücke/Grußformeln/Fragen (z. B. "¿Cómo te llamas?") zählen als Wortschatz,
+  // nicht als Satz — nur wirklich lange, frei konstruierte Sätze gelten als "Satz".
+  return wordCount >= 6 ? 'sentence' : 'word';
+}
+
+function currentTabVocab(){
+  return state.vocab.filter(v => inferVocabType(v) === vocabActiveTab);
+}
+
+function renderVocab(){
+  const list = currentTabVocab();
+
+  if (list.length === 0){
+    vocabEmpty.textContent = vocabActiveTab === 'word'
+      ? 'Noch keine einzelnen Wörter gesammelt – sobald Vale dich bei einem Wort korrigiert, landet es automatisch hier.'
+      : 'Noch keine ganzen Sätze gesammelt – sobald Vale einen kompletten Satz von dir korrigiert, landet er automatisch hier.';
+    vocabEmpty.style.display = 'block';
+    vocabListEl.innerHTML = '';
+    return;
+  }
+  vocabEmpty.style.display = 'none';
+  vocabListEl.innerHTML = '';
+  list.slice().reverse().forEach(v => {
+    const realIdx = state.vocab.indexOf(v);
+    const item = document.createElement('div');
+    item.className = 'vocab-item';
+
+    if (editingVocabIdx === realIdx){
+      item.classList.add('editing');
+      let editType = inferVocabType(v);
+
+      const typeLabel = document.createElement('label');
+      typeLabel.className = 'vocab-edit-label';
+      typeLabel.textContent = 'Kategorie';
+      const typeToggle = document.createElement('div');
+      typeToggle.className = 'vocab-type-toggle';
+      const wordBtn = document.createElement('button');
+      wordBtn.type = 'button';
+      wordBtn.textContent = 'Wort';
+      wordBtn.className = editType === 'word' ? 'active' : '';
+      const sentBtn = document.createElement('button');
+      sentBtn.type = 'button';
+      sentBtn.textContent = 'Satz';
+      sentBtn.className = editType === 'sentence' ? 'active' : '';
+      wordBtn.addEventListener('click', () => { editType = 'word'; wordBtn.className = 'active'; sentBtn.className = ''; });
+      sentBtn.addEventListener('click', () => { editType = 'sentence'; sentBtn.className = 'active'; wordBtn.className = ''; });
+      typeToggle.appendChild(wordBtn);
+      typeToggle.appendChild(sentBtn);
+
+      const corrLabel = document.createElement('label');
+      corrLabel.className = 'vocab-edit-label';
+      corrLabel.textContent = 'Richtige Form';
+      const corrInput = document.createElement('input');
+      corrInput.className = 'vocab-edit-input';
+      corrInput.value = v.correction;
+
+      const origLabel = document.createElement('label');
+      origLabel.className = 'vocab-edit-label';
+      origLabel.textContent = 'Deine ursprüngliche Form';
+      const origInput = document.createElement('input');
+      origInput.className = 'vocab-edit-input';
+      origInput.value = v.original;
+
+      const transLabel = document.createElement('label');
+      transLabel.className = 'vocab-edit-label';
+      transLabel.textContent = 'Übersetzung (Deutsch)';
+      const transInput = document.createElement('input');
+      transInput.className = 'vocab-edit-input';
+      transInput.value = v.translation_de;
+
+      item.appendChild(typeLabel);
+      item.appendChild(typeToggle);
+      item.appendChild(corrLabel);
+      item.appendChild(corrInput);
+      item.appendChild(origLabel);
+      item.appendChild(origInput);
+      item.appendChild(transLabel);
+      item.appendChild(transInput);
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'vocab-edit-btns';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'vocab-save-btn';
+      saveBtn.textContent = 'Speichern';
+      saveBtn.addEventListener('click', async () => {
+        state.vocab[realIdx] = {
+          ...v,
+          correction: corrInput.value.trim().slice(0,120) || v.correction,
+          original: origInput.value.trim().slice(0,120),
+          translation_de: transInput.value.trim().slice(0,160),
+          type: editType
+        };
+        editingVocabIdx = null;
+        renderVocab();
+        await saveState();
+      });
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'vocab-cancel-btn';
+      cancelBtn.textContent = 'Abbrechen';
+      cancelBtn.addEventListener('click', () => { editingVocabIdx = null; renderVocab(); });
+
+      btnRow.appendChild(saveBtn);
+      btnRow.appendChild(cancelBtn);
+      item.appendChild(btnRow);
+
+      vocabListEl.appendChild(item);
+      return;
+    }
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'vocab-edit-btn';
+    editBtn.setAttribute('aria-label', 'Wort bearbeiten');
+    editBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>';
+    editBtn.addEventListener('click', () => { editingVocabIdx = realIdx; renderVocab(); });
+    item.appendChild(editBtn);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'vocab-remove';
+    removeBtn.setAttribute('aria-label', 'Wort entfernen');
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', async () => {
+      state.vocab.splice(realIdx, 1);
+      renderVocab();
+      await saveState();
+    });
+    item.appendChild(removeBtn);
+
+    const line1 = document.createElement('div');
+    const corr = document.createElement('span');
+    corr.className = 'vocab-correction';
+    corr.textContent = v.correction;
+    line1.appendChild(corr);
+    if (v.original){
+      const orig = document.createElement('span');
+      orig.className = 'vocab-original';
+      orig.textContent = 'statt „' + v.original + '“';
+      line1.appendChild(orig);
+    }
+    item.appendChild(line1);
+
+    const line2 = document.createElement('div');
+    line2.className = 'vocab-translation';
+    line2.textContent = v.translation_de;
+    item.appendChild(line2);
+
+    vocabListEl.appendChild(item);
+  });
+}
+
+let quizDeck = [];
+let quizIndex = 0;
+let quizCorrectCount = 0;
+let quizRevealed = false;
+let quizCardMode = 'flashcard';
+let quizUserAnswer = '';
+let quizWasCorrect = null;
+
+function normalizeForCheck(str){
+  return String(str)
+    .toLowerCase()
+    .trim()
+    .replace(/^(el|la|los|las)\s+/i, '')
+    .replace(/[¿?¡!.,;:"']/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildQuizDeck(){
+  const shuffled = currentTabVocab().map(v => ({
+    ...v,
+    idx: state.vocab.indexOf(v),
+    direction: Math.random() < 0.5 ? 'de2es' : 'es2de'
+  }));
+  for (let i = shuffled.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  shuffled.sort((a, b) => (b.difficulty || 0) - (a.difficulty || 0));
+  return shuffled;
+}
+
+function startQuiz(){
+  if (currentTabVocab().length === 0) return;
+  quizDeck = buildQuizDeck();
+  quizIndex = 0;
+  quizCorrectCount = 0;
+  quizRevealed = false;
+  quizUserAnswer = '';
+  quizWasCorrect = null;
+  quizScreenTitleEl.textContent = 'Quiz: ' + (vocabActiveTab === 'word' ? 'Wörter' : 'Sätze');
+  quizSetupViewEl.style.display = 'none';
+  quizViewEl.style.display = 'block';
+  renderQuiz();
+}
+
+function exitQuiz(){
+  quizScreenTitleEl.textContent = 'Quiz';
+  quizViewEl.style.display = 'none';
+  quizSetupViewEl.style.display = 'block';
+  updateQuizSetupCount();
+}
+
+function renderQuiz(){
+  quizViewEl.innerHTML = '';
+
+  if (quizIndex >= quizDeck.length){
+    renderQuizDone();
+    return;
+  }
+
+  const item = quizDeck[quizIndex];
+  const isDe2Es = item.direction === 'de2es';
+  const promptStr = isDe2Es ? item.translation_de : item.correction;
+  const answerStr = isDe2Es ? item.correction : item.translation_de;
+  let writeInputEl = null;
+
+  const progress = document.createElement('div');
+  progress.className = 'quiz-progress';
+  progress.textContent = (quizIndex + 1) + ' / ' + quizDeck.length;
+  quizViewEl.appendChild(progress);
+
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+
+  const promptLabel = document.createElement('div');
+  promptLabel.className = 'quiz-prompt-label';
+  promptLabel.textContent = isDe2Es ? 'Wie sagt man auf Spanisch…' : 'Was bedeutet das auf Deutsch…';
+  card.appendChild(promptLabel);
+
+  const promptText = document.createElement('div');
+  promptText.className = 'quiz-prompt-text';
+  promptText.textContent = promptStr;
+  card.appendChild(promptText);
+
+  if (quizCardMode === 'write' && !quizRevealed){
+    const inputWrap = document.createElement('div');
+    inputWrap.className = 'quiz-write-wrap';
+    writeInputEl = document.createElement('input');
+    writeInputEl.type = 'text';
+    writeInputEl.className = 'quiz-write-input';
+    writeInputEl.autocomplete = 'off';
+    writeInputEl.placeholder = isDe2Es ? 'Antwort auf Spanisch…' : 'Antwort auf Deutsch…';
+    writeInputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter'){ e.preventDefault(); checkWrittenAnswer(writeInputEl.value, answerStr); }
+    });
+    inputWrap.appendChild(writeInputEl);
+    card.appendChild(inputWrap);
+  }
+
+  if (quizRevealed){
+    const answerBlock = document.createElement('div');
+    answerBlock.className = 'quiz-answer-block';
+
+    if (quizCardMode === 'write'){
+      const userLine = document.createElement('div');
+      userLine.className = 'quiz-user-answer ' + (quizWasCorrect ? 'correct' : 'wrong');
+      userLine.textContent = 'Deine Antwort: ' + (quizUserAnswer || '(leer)') + (quizWasCorrect ? ' ✓' : ' ✗');
+      answerBlock.appendChild(userLine);
+    }
+
+    const answerTextEl = document.createElement('div');
+    answerTextEl.className = 'quiz-answer-text';
+    answerTextEl.textContent = answerStr;
+    answerBlock.appendChild(answerTextEl);
+
+    if (item.original){
+      const answerOrig = document.createElement('div');
+      answerOrig.className = 'quiz-answer-original';
+      answerOrig.textContent = 'deine erste Version: „' + item.original + '“';
+      answerBlock.appendChild(answerOrig);
+    }
+    card.appendChild(answerBlock);
+  }
+  quizViewEl.appendChild(card);
+
+  if (!quizRevealed){
+    if (quizCardMode === 'flashcard'){
+      const revealBtn = document.createElement('button');
+      revealBtn.type = 'button';
+      revealBtn.className = 'quiz-reveal-btn';
+      revealBtn.textContent = 'Antwort zeigen';
+      revealBtn.addEventListener('click', () => { quizRevealed = true; renderQuiz(); });
+      quizViewEl.appendChild(revealBtn);
+    } else {
+      const checkBtn = document.createElement('button');
+      checkBtn.type = 'button';
+      checkBtn.className = 'quiz-reveal-btn';
+      checkBtn.textContent = 'Prüfen';
+      checkBtn.addEventListener('click', () => checkWrittenAnswer(writeInputEl ? writeInputEl.value : '', answerStr));
+      quizViewEl.appendChild(checkBtn);
+    }
+  } else {
+    const rateBtns = document.createElement('div');
+    rateBtns.className = 'quiz-rate-btns';
+
+    const wrongBtn = document.createElement('button');
+    wrongBtn.type = 'button';
+    wrongBtn.className = 'quiz-wrong-btn';
+    wrongBtn.textContent = '❌ Nochmal üben';
+    wrongBtn.addEventListener('click', () => rateQuizCard(false));
+    rateBtns.appendChild(wrongBtn);
+
+    const rightBtn = document.createElement('button');
+    rightBtn.type = 'button';
+    rightBtn.className = 'quiz-right-btn';
+    rightBtn.textContent = '✅ Weiß ich';
+    rightBtn.addEventListener('click', () => rateQuizCard(true));
+    rateBtns.appendChild(rightBtn);
+
+    quizViewEl.appendChild(rateBtns);
+  }
+
+  const exitBtn = document.createElement('button');
+  exitBtn.type = 'button';
+  exitBtn.className = 'quiz-exit-btn';
+  exitBtn.textContent = 'Quiz beenden';
+  exitBtn.addEventListener('click', exitQuiz);
+  quizViewEl.appendChild(exitBtn);
+
+  if (writeInputEl){
+    const toFocus = writeInputEl;
+    setTimeout(() => toFocus.focus(), 30);
+  }
+}
+
+function checkWrittenAnswer(userInput, correctAnswer){
+  quizUserAnswer = String(userInput).trim();
+  quizWasCorrect = normalizeForCheck(quizUserAnswer) === normalizeForCheck(correctAnswer);
+  quizRevealed = true;
+  renderQuiz();
+}
+
+async function rateQuizCard(knewIt){
+  const item = quizDeck[quizIndex];
+  const realIdx = item.idx;
+  if (state.vocab[realIdx]){
+    const current = state.vocab[realIdx].difficulty || 0;
+    state.vocab[realIdx].difficulty = knewIt ? Math.max(0, current - 1) : Math.min(5, current + 1);
+  }
+  if (knewIt) quizCorrectCount++;
+  await saveState();
+  quizIndex++;
+  quizRevealed = false;
+  quizUserAnswer = '';
+  quizWasCorrect = null;
+  renderQuiz();
+}
+
+function renderQuizDone(){
+  quizViewEl.innerHTML = '';
+  const done = document.createElement('div');
+  done.className = 'quiz-done';
+
+  const emoji = document.createElement('div');
+  emoji.className = 'quiz-done-emoji';
+  emoji.textContent = quizCorrectCount === quizDeck.length ? '🎉' : '☕';
+  done.appendChild(emoji);
+
+  const text = document.createElement('div');
+  text.className = 'quiz-done-text';
+  text.textContent = 'Fertig!';
+  done.appendChild(text);
+
+  const sub = document.createElement('div');
+  sub.className = 'quiz-done-sub';
+  sub.textContent = 'Du wusstest ' + quizCorrectCount + ' von ' + quizDeck.length + '.';
+  done.appendChild(sub);
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'quiz-done-btns';
+
+  const restartBtn = document.createElement('button');
+  restartBtn.type = 'button';
+  restartBtn.className = 'quiz-right-btn';
+  restartBtn.textContent = 'Nochmal';
+  restartBtn.addEventListener('click', startQuiz);
+  btnRow.appendChild(restartBtn);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'quiz-wrong-btn';
+  closeBtn.textContent = 'Zur Liste';
+  closeBtn.addEventListener('click', exitQuiz);
+  btnRow.appendChild(closeBtn);
+
+  done.appendChild(btnRow);
+  quizViewEl.appendChild(done);
+}
+
+quizStartBtn.addEventListener('click', startQuiz);
+
+function renderMessages(){
+  chatEl.innerHTML = '';
+  activeMessages().forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'msg-row ' + (m.role === 'user' ? 'user' : 'bot');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = m.text;
+    row.appendChild(bubble);
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+
+    if (m.role !== 'user' && ttsSupported){
+      const sBtn = document.createElement('button');
+      sBtn.type = 'button';
+      sBtn.className = 'speak-btn';
+      const isSpeaking = speakingIdx === idx;
+      sBtn.setAttribute('aria-label', isSpeaking ? 'Stopp' : 'Vorlesen');
+      sBtn.innerHTML = isSpeaking ? STOP_ICON : SPEAK_ICON;
+      sBtn.addEventListener('click', () => speakMessage(idx));
+      meta.appendChild(sBtn);
+    }
+
+    const tBtn = document.createElement('button');
+    tBtn.type = 'button';
+    tBtn.className = 'translate-btn';
+    tBtn.disabled = !!m.translating;
+    tBtn.textContent = m.translating ? '… übersetze' : (m.translation ? (m.showTranslation ? '▲ Übersetzung' : '▼ Übersetzung') : '🌐 Übersetzen');
+    tBtn.addEventListener('click', () => onTranslateClick(idx));
+    meta.appendChild(tBtn);
+    row.appendChild(meta);
+
+    if (m.translation){
+      const tDiv = document.createElement('div');
+      tDiv.className = 'translation' + (m.showTranslation ? ' open' : '');
+      tDiv.textContent = m.translation;
+      row.appendChild(tDiv);
+    }
+    chatEl.appendChild(row);
+  });
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function speakMessage(idx){
+  if (!ttsSupported) return;
+  if (speakingIdx === idx){
+    window.speechSynthesis.cancel();
+    speakingIdx = null;
+    renderMessages();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  try {
+    const utter = new SpeechSynthesisUtterance(activeMessages()[idx].text);
+    const esVoice = cachedVoices.find(v => v.lang && /^es/i.test(v.lang) && /MX|CO|AR|CL|PE|VE|419|US/i.test(v.lang))
+      || cachedVoices.find(v => v.lang && /^es/i.test(v.lang));
+    if (esVoice) utter.voice = esVoice;
+    utter.lang = esVoice ? esVoice.lang : 'es-CO';
+    utter.rate = 0.95;
+    speakingIdx = idx;
+    renderMessages();
+    utter.onend = () => { speakingIdx = null; renderMessages(); };
+    utter.onerror = () => { speakingIdx = null; renderMessages(); };
+    window.speechSynthesis.speak(utter);
+  } catch(e){
+    speakingIdx = null;
+    console.error('Vorlesen fehlgeschlagen', e);
+  }
+}
+
+function showTyping(show){
+  let el = root.querySelector('#typingIndicator');
+  if (show){
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'typingIndicator';
+      el.className = 'typing-row';
+      el.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20">' +
+        '<path class="steam-line s1" d="M7 10c0-1.4 1.4-1.4 1.4-2.8S7 5.4 7 4" stroke="var(--sage)" stroke-width="1.3" fill="none" stroke-linecap="round"/>' +
+        '<path class="steam-line s2" d="M13 10c0-1.4 1.4-1.4 1.4-2.8S13 5.4 13 4" stroke="var(--sage)" stroke-width="1.3" fill="none" stroke-linecap="round"/>' +
+        '</svg><span>Vale escribe…</span>';
+      chatEl.appendChild(el);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+  } else if (el){
+    el.remove();
+  }
+}
+
+async function saveState(){
+  try {
+    await storageSet('lebensplaner:vale_chat_state', JSON.stringify(state));
+  } catch(e){ console.error('Speichern fehlgeschlagen', e); }
+}
+
+async function loadState(){
+  try {
+    const res = await storageGet('lebensplaner:vale_chat_state');
+    if (res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = { ...state, ...parsed };
+    }
+  } catch(e){
+    // kein gespeicherter Zustand vorhanden – erster Start, das ist ok
+  }
+}
+
+function buildSystemPrompt(){
+  const lvl = LEVELS[state.level];
+  const scenario = (chatMode === 'roleplay' && currentTopic)
+    ? '\n\nCONTEXTO DE ROLLENSPIEL (muy importante, mantenlo durante toda la charla): ' + currentTopic.scenario + '\n'
+    : '';
+  return 'Eres Vale, una chica colombiana de unos 24 años (de Medellín), cálida, alegre, con mucho sentido del humor y buena onda. ' +
+    'Estás chateando con un amigo alemán que está aprendiendo español y quiere practicar español colombiano auténtico, no de libro de texto — como si se tomaran un cafecito juntos y hablaran de la vida.' +
+    scenario + '\n\n' +
+    'Nivel del usuario: ' + state.level + '. ' + lvl.instruction + '\n\n' +
+    'Reglas:\n' +
+    '- Habla siempre en español colombiano coloquial y natural (nunca acartonado, nunca como manual escolar), ajustado al nivel de arriba.\n' +
+    '- Sé breve: 2 a 4 frases por mensaje, como un chat real de WhatsApp, no un ensayo.\n' +
+    '- Si el usuario comete un error, corrígelo con cariño y brevedad, dentro de la misma respuesta (ej.: "¡Casi! Se dice \'tengo hambre\', no \'yo tengo hambre es\' — detallito no más 😉"), incluso si estás en un rol dentro de un rollenspiel — sal del personaje un instante para corregir y sigue.\n' +
+    '- Ten personalidad propia: cuenta cositas de tu día, opina, pregunta cosas. Mantén viva la charla.\n' +
+    '- Nunca coquetees ni uses un tono romántico: eres una amiga de intercambio de idiomas, nada más.\n' +
+    '- Usa emojis con moderación, no en cada mensaje.\n' +
+    '- Si el usuario escribe en alemán porque se atascó, respóndele igual mayormente en español, y si ayuda, aclara una palabra clave en alemán entre paréntesis.';
+}
+
+async function callClaude(systemPrompt, msgs){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: msgs
+    })
+  });
+  const data = await response.json();
+  return (data.content || []).map(b => b.type === 'text' ? b.text : '').join('').trim();
+}
+
+async function getBotReply(){
+  const history = activeMessages().slice(-16).map(m => ({
+    role: m.role === 'user' ? 'user' : 'assistant',
+    content: m.text
+  }));
+  return await callClaude(buildSystemPrompt(), history);
+}
+
+async function onTranslateClick(idx){
+  const m = activeMessages()[idx];
+  if (m.translation){
+    m.showTranslation = !m.showTranslation;
+    renderMessages();
+    await saveState();
+    return;
+  }
+  m.translating = true;
+  renderMessages();
+  try {
+    const translation = await callClaude(
+      "Eres un traductor profesional entre español y alemán. Detecta automáticamente el idioma del texto (español o alemán) y tradúcelo al otro idioma con una traducción NATURAL e IDIOMÁTICA, nunca palabra por palabra. Presta especial cuidado con expresiones que no se traducen literalmente, como las construcciones con 'tener' (tener frío/hambre/miedo/razón...): 'tener frío' es 'frieren' o 'Ist dir kalt?', NUNCA 'kalt haben'. Responde ÚNICAMENTE con la traducción, sin explicaciones ni comillas.",
+      [{ role:'user', content: m.text }]
+    );
+    m.translation = translation || '(Übersetzung fehlgeschlagen)';
+    m.showTranslation = true;
+  } catch(e){
+    m.translation = 'Fehler bei der Übersetzung.';
+    m.showTranslation = true;
+  }
+  m.translating = false;
+  renderMessages();
+  await saveState();
+}
+
+async function extractVocab(userText, botText){
+  try {
+    const raw = await callClaude(
+      'Analiza este intercambio de chat entre Vale (colombiana) y su amigo alemán que aprende español. Identifica ÚNICAMENTE errores que Vale corrigió explícitamente en su respuesta — no inventes correcciones que no estén ahí, y no cuentes simples preguntas, comentarios o vocabulario nuevo sin error. Para cada corrección real da: la forma incorrecta que escribió el usuario, la forma correcta, una traducción al alemán NATURAL e IDIOMÁTICA de la forma correcta — nunca palabra por palabra — y el tipo: "word" si es una sola palabra o una expresión fija corta (como "tener frío", "de vez en cuando"), o "sentence" si es una oración completa con sujeto y verbo (como una pregunta o afirmación completa). Ejemplo importante de traducción: expresiones con "tener" (tener frío/hambre/miedo/razón...) no se calcan; "tener frío" es "frieren" o "Ist dir kalt?", NUNCA "kalt haben". Aplica el mismo cuidado con cualquier otra expresión idiomática.\n\n' +
+      'Responde ÚNICAMENTE con JSON válido, sin texto adicional ni marcado de código, en este formato exacto: [{"original":"...","correction":"...","translation_de":"...","type":"word"}]\n\n' +
+      'Si no hubo ninguna corrección real, responde exactamente: []',
+      [{ role:'user', content: 'El usuario escribió: "' + userText + '"\nVale respondió: "' + botText + '"' }]
+    );
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+    let changed = false;
+    parsed.forEach(entry => {
+      if (!entry || !entry.correction) return;
+      const correction = String(entry.correction).slice(0,120);
+      const already = state.vocab.some(v => v.correction.toLowerCase() === correction.toLowerCase());
+      if (!already){
+        state.vocab.push({
+          original: String(entry.original || '').slice(0,120),
+          correction: correction,
+          translation_de: String(entry.translation_de || '').slice(0,160),
+          difficulty: 0,
+          type: entry.type === 'sentence' ? 'sentence' : 'word'
+        });
+        changed = true;
+      }
+    });
+    if (changed){
+      renderVocab();
+      renderHome();
+      await saveState();
+    }
+  } catch(e){
+    // Vokabel-Extraktion ist ein Zusatzfeature – bei Fehlern einfach nichts hinzufügen
+    console.error('Vokabel-Extraktion fehlgeschlagen', e);
+  }
+}
+
+async function parseVocabBatch(rawChunk){
+  const raw = await callClaude(
+    'Eres un asistente que normaliza una lista de vocabulario español-alemán con formato desordenado, típica de una lista privada de aprendizaje hecha a mano. Puede tener estos problemas:\n' +
+    '- A veces el español va primero y el alemán después en la misma línea, sin ningún separador claro (solo un espacio).\n' +
+    '- A veces (especialmente con nombres de países) el ORDEN ESTÁ INVERTIDO: el alemán va primero y el español después.\n' +
+    '- Algunas entradas están partidas en 2 o 3 líneas por saltos de línea del documento original; hay que unirlas en una sola entrada.\n' +
+    '- Puede haber espacios dobles, comas faltantes entre varias traducciones alemanas, u otros pequeños errores de formato — consérvalos tal cual, no los corrijas de más.\n\n' +
+    'Extrae cada entrada de vocabulario como un objeto {"es":"...", "de":"...", "type":"word"} con el español y el alemán correctamente identificados y separados (nunca mezclados, nunca con el idioma equivocado en el campo equivocado). No inventes entradas que no estén en el texto. No omitas ninguna entrada real, incluso si el texto es solo un fragmento cortado al principio o al final.\n\n' +
+    'Para "type" usa "word" para palabras sueltas y para expresiones fijas cortas que se aprenden como bloque — esto incluye saludos y preguntas cortas y formulaicas como "¿Cómo te llamas?" o "¿Qué hora es?". Usa "sentence" ÚNICAMENTE para oraciones largas y construidas libremente (normalmente 6 palabras o más, con estructura gramatical compleja).\n\n' +
+    'Responde ÚNICAMENTE con JSON válido, sin texto adicional ni marcado de código: [{"es":"...","de":"...","type":"word"}]',
+    [{ role:'user', content: rawChunk }]
+  );
+  const clean = raw.replace(/```json|```/g, '').trim();
+  try {
+    const parsed = JSON.parse(clean);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e){
+    console.error('Import-Block konnte nicht geparst werden', e, raw);
+    return [];
+  }
+}
+
+async function runImport(rawText){
+  const lines = rawText.split('\n').filter(l => l.trim().length > 0);
+  if (lines.length === 0) return;
+
+  const CHUNK_SIZE = 25;
+  const chunks = [];
+  for (let i = 0; i < lines.length; i += CHUNK_SIZE){
+    chunks.push(lines.slice(i, i + CHUNK_SIZE).join('\n'));
+  }
+
+  importCancelled = false;
+  let addedCount = 0;
+  let skippedCount = 0;
+  importGoBtn.disabled = true;
+  importFileEl.disabled = true;
+  importTextEl.disabled = true;
+  importCancelBtn.textContent = 'Stopp';
+
+  for (let i = 0; i < chunks.length; i++){
+    if (importCancelled) break;
+    importProgressEl.textContent = 'Importiere… Block ' + (i + 1) + ' von ' + chunks.length + ' (' + addedCount + ' neu bisher)';
+    try {
+      const entries = await parseVocabBatch(chunks[i]);
+      entries.forEach(e => {
+        if (!e || !e.es || !e.de) return;
+        const correction = String(e.es).trim().slice(0,120);
+        if (!correction) return;
+        const already = state.vocab.some(v => v.correction.toLowerCase() === correction.toLowerCase());
+        if (already){ skippedCount++; return; }
+        state.vocab.push({
+          original: '',
+          correction: correction,
+          translation_de: String(e.de).trim().slice(0,160),
+          difficulty: 0,
+          type: e.type === 'sentence' ? 'sentence' : 'word'
+        });
+        addedCount++;
+      });
+      await saveState();
+      renderVocab();
+      renderHome();
+    } catch(err){
+      console.error('Import-Block fehlgeschlagen', err);
+    }
+  }
+
+  importProgressEl.textContent = importCancelled
+    ? 'Abgebrochen. ' + addedCount + ' Wörter importiert.'
+    : 'Fertig! ' + addedCount + ' neue Wörter importiert' + (skippedCount > 0 ? ', ' + skippedCount + ' schon vorhanden übersprungen.' : '.');
+  importGoBtn.disabled = false;
+  importFileEl.disabled = false;
+  importTextEl.disabled = false;
+  importCancelBtn.textContent = 'Schließen';
+}
+
+async function initGreeting(){
+  showTyping(true);
+  try {
+    const greeting = await callClaude(
+      buildSystemPrompt(),
+      [{ role:'user', content:'(El usuario acaba de abrir el chat. Salúdalo de forma breve, cálida y natural, como si fueran amigas por chat, y pregúntale algo para arrancar la conversación.)' }]
+    );
+    showTyping(false);
+    state.messages.push({ role:'bot', text: greeting || '¡Hola! ¿Cómo estás? 😄', translation:null, showTranslation:false, translating:false });
+  } catch(e){
+    showTyping(false);
+    state.messages.push({ role:'bot', text:'¡Hola! ¿Cómo estás? 😄', translation:null, showTranslation:false, translating:false });
+  }
+  renderMessages();
+  await saveState();
+}
+
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  sendBtn.disabled = true;
+
+  activeMessages().push({ role:'user', text, translation:null, showTranslation:false, translating:false });
+  updateStreak();
+  renderMessages();
+  await saveState();
+
+  showTyping(true);
+  let reply = '';
+  try {
+    reply = await getBotReply();
+    showTyping(false);
+    activeMessages().push({ role:'bot', text: reply || '¡Uy, se me fue la señal! ¿Me repites?', translation:null, showTranslation:false, translating:false });
+  } catch(e){
+    showTyping(false);
+    activeMessages().push({ role:'bot', text:'Uy, hubo un error de conexión. ¿Intentamos de nuevo?', translation:null, showTranslation:false, translating:false });
+  }
+  renderMessages();
+  await saveState();
+  sendBtn.disabled = false;
+  inputEl.focus();
+
+  // läuft im Hintergrund weiter, blockiert nicht die nächste Nachricht
+  if (reply) extractVocab(text, reply);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter'){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+function closeOverlay(){
+  overlay.classList.remove('open');
+  resetConfirm.classList.remove('open');
+}
+settingsBtn.addEventListener('click', () => overlay.classList.add('open'));
+overlayClose.addEventListener('click', closeOverlay);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+
+function resetVocabScreenView(){
+  editingVocabIdx = null;
+}
+
+function updateQuizSetupCount(){
+  const count = currentTabVocab().length;
+  quizSetupCountEl.textContent = count + (vocabActiveTab === 'word' ? ' Wörter verfügbar' : ' Sätze verfügbar');
+  quizStartBtn.disabled = count === 0;
+}
+
+function resetQuizScreenView(){
+  quizScreenTitleEl.textContent = 'Quiz';
+  quizViewEl.style.display = 'none';
+  quizSetupViewEl.style.display = 'block';
+}
+
+function setVocabActiveTab(tab){
+  vocabActiveTab = tab;
+  [...vocabTabsEl.children].forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  [...quizTabsEl.children].forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  renderVocab();
+  updateQuizSetupCount();
+}
+
+vocabTabsEl.addEventListener('click', e => {
+  const btn = e.target.closest('.vocab-tab');
+  if (!btn) return;
+  setVocabActiveTab(btn.dataset.tab);
+});
+
+quizTabsEl.addEventListener('click', e => {
+  const btn = e.target.closest('.vocab-tab');
+  if (!btn) return;
+  setVocabActiveTab(btn.dataset.tab);
+});
+
+quizModeToggle.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  quizCardMode = btn.dataset.mode;
+  [...quizModeToggle.children].forEach(b => b.classList.toggle('active', b === btn));
+});
+
+importBtn.addEventListener('click', () => {
+  importPanel.style.display = importPanel.style.display === 'none' ? 'block' : 'none';
+});
+
+importFileEl.addEventListener('change', () => {
+  const file = importFileEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { importTextEl.value = reader.result; };
+  reader.readAsText(file, 'UTF-8');
+});
+
+importGoBtn.addEventListener('click', () => {
+  const text = importTextEl.value.trim();
+  if (!text) return;
+  runImport(text);
+});
+
+importCancelBtn.addEventListener('click', () => {
+  if (importGoBtn.disabled){
+    importCancelled = true;
+    return;
+  }
+  importPanel.style.display = 'none';
+  importTextEl.value = '';
+  importFileEl.value = '';
+  importProgressEl.textContent = '';
+  importCancelBtn.textContent = 'Abbrechen';
+});
+
+levelGrid.addEventListener('click', async e => {
+  const btn = e.target.closest('.level-btn');
+  if (!btn) return;
+  state.level = btn.dataset.level;
+  renderLevelUI();
+  await saveState();
+});
+
+resetBtn.addEventListener('click', () => resetConfirm.classList.add('open'));
+resetNo.addEventListener('click', () => resetConfirm.classList.remove('open'));
+resetYes.addEventListener('click', async () => {
+  state = { level:'A2', streak:0, lastDate:null, messages:[], vocab:[] };
+  chatMode = 'free';
+  roleplayMessages = [];
+  currentTopic = null;
+  streakNumEl.textContent = state.streak;
+  homeStreakNumEl.textContent = state.streak;
+  renderLevelUI();
+  renderVocab();
+  renderHome();
+  updateChatHeaderForMode();
+  closeOverlay();
+  await saveState();
+  await initGreeting();
+});
+
+function renderHome(){
+  const words = state.vocab.filter(v => inferVocabType(v) === 'word').length;
+  const sentences = state.vocab.filter(v => inferVocabType(v) === 'sentence').length;
+  menuVocabSubEl.textContent = words + ' Wörter · ' + sentences + ' Sätze';
+}
+
+function updateChatHeaderForMode(){
+  if (chatMode === 'roleplay' && currentTopic){
+    chatHeaderNameEl.textContent = currentTopic.emoji + ' ' + currentTopic.name;
+    chatHeaderSubEl.textContent = 'Rollenspiel mit Vale';
+  } else {
+    chatHeaderNameEl.textContent = 'Vale';
+    chatHeaderSubEl.textContent = 'Cafecito & Charla · kolumbianisches Spanisch';
+  }
+}
+
+function renderTopics(){
+  topicsListEl.innerHTML = '';
+  TOPICS.forEach(topic => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'menu-card';
+    card.innerHTML =
+      '<div class="menu-card-icon">' + topic.emoji + '</div>' +
+      '<div class="menu-card-text"><div class="menu-card-title">' + topic.name + '</div>' +
+      '<div class="menu-card-sub">Rollenspiel starten</div></div>' +
+      '<div class="menu-card-arrow">→</div>';
+    card.addEventListener('click', () => startRoleplay(topic));
+    topicsListEl.appendChild(card);
+  });
+}
+
+function startRoleplay(topic){
+  currentTopic = topic;
+  chatMode = 'roleplay';
+  roleplayMessages = [];
+  const opener = topic.openers[Math.floor(Math.random() * topic.openers.length)];
+  roleplayMessages.push({ role:'bot', text: opener, translation:null, showTranslation:false, translating:false });
+  renderMessages();
+  showScreen('chat');
+}
+
+function showScreen(name){
+  homeScreenEl.style.display = name === 'home' ? 'flex' : 'none';
+  chatScreenEl.style.display = name === 'chat' ? 'flex' : 'none';
+  vocabScreenEl.style.display = name === 'vocab' ? 'flex' : 'none';
+  quizScreenEl.style.display = name === 'quiz' ? 'flex' : 'none';
+  topicsScreenEl.style.display = name === 'topics' ? 'flex' : 'none';
+
+  if (name === 'home') renderHome();
+  if (name === 'vocab'){ resetVocabScreenView(); renderVocab(); }
+  if (name === 'quiz'){ resetQuizScreenView(); updateQuizSetupCount(); }
+  if (name === 'topics') renderTopics();
+  if (name === 'chat'){ updateChatHeaderForMode(); chatEl.scrollTop = chatEl.scrollHeight; inputEl.focus(); }
+}
+
+menuChatBtn.addEventListener('click', () => { chatMode = 'free'; showScreen('chat'); });
+menuVocabBtn.addEventListener('click', () => showScreen('vocab'));
+menuQuizBtn.addEventListener('click', () => showScreen('quiz'));
+menuRoleplayBtn.addEventListener('click', () => showScreen('topics'));
+topicsBackBtn.addEventListener('click', () => showScreen('home'));
+chatBackBtn.addEventListener('click', () => showScreen(chatMode === 'roleplay' ? 'topics' : 'home'));
+vocabBackBtn.addEventListener('click', () => showScreen('home'));
+quizBackBtn.addEventListener('click', () => showScreen('home'));
+
+(async function init(){
+  await loadState();
+  updateStreak();
+  renderLevelUI();
+  renderVocab();
+  if (state.messages.length === 0){
+    await initGreeting();
+  } else {
+    renderMessages();
+  }
+  await saveState();
+  showScreen('home');
+})();
+
 }
 
 /* =========================================================================

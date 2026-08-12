@@ -47,7 +47,7 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
 | KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
 | Gmail | – (nur `localStorage`) | Öffnet eines von 3 Gmail-Konten als Popup-Fenster (`window.open`, kein iframe/OAuth); Kontonamen frei umbenennbar |
-| Spanisch lernen | – | Öffnet den separaten "Vale"-Sprachlern-Chat als Popup-Fenster |
+| Spanisch lernen | – (nur `localStorage`) | "Vale" – Chat-Sprachpartnerin für kolumbianisches Spanisch, direkt als eigenes Modul eingebettet (Chat, Vokabelheft, Quiz, Rollenspiel) |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
 
@@ -57,7 +57,9 @@ Kein iframe (Google blockiert das Einbetten von Gmail per `X-Frame-Options` ohne
 
 ### Spanisch lernen
 
-Öffnet den separat gepflegten "Vale"-Sprachlern-Chat (kolumbianisches Spanisch) als Popup-Fenster mit festem Fenster-Namen (`spanisch-lernen`), analog zu Gmail. Bewusst **nicht** als Code in `index.html` mit eingebaut: Vale erzeugt Chat-Antworten, Korrekturen, automatische Vokabel-Erkennung und Übersetzungen über einen Live-Aufruf der Anthropic-API, der ohne eigenen API-Key nur innerhalb der Artifact-Umgebung funktioniert (dort wird der Zugriff automatisch von der Plattform autorisiert). Außerhalb davon – z. B. als reine GitHub-Pages-Datei – würde dieser Aufruf fehlschlagen, und ein Nachbau mit den Offline-Regeln des KI-Assistenten wäre für einen freien KI-Chat nicht sinnvoll möglich. Der Popup-Link verweist daher auf die separat gehostete Artifact-Version, in der Vale mit voller Funktion läuft.
+Der "Vale"-Sprachlern-Chat (kolumbianisches Spanisch: freies Chatten, Korrekturen, automatische Vokabel-Erkennung, Übersetzungen, Karteikarten-/Schreib-Quiz, Rollenspiel) ist direkt als eigenes Modul in `index.html` eingebettet (`renderSpanish` + `initSpanishApp`, CSS unter dem Präfix `.vale-app` isoliert, damit nichts mit dem restlichen Lebensplaner-Styling kollidiert). Vales eigener Zustand (Chatverlauf, Streak, Level, Vokabelheft) liegt in `localStorage` statt im GitHub-Repo.
+
+**Wichtige Einschränkung:** Chat-Antworten, Korrekturen, Vokabel-Erkennung und Übersetzungen laufen über einen Live-Aufruf von `api.anthropic.com`, der ohne eigenen API-Key im Code auskommt. Das funktioniert nur innerhalb einer Claude-Artifact-Umgebung, wo die Plattform den Zugriff automatisch autorisiert – dort läuft Vale mit voller Funktion. Öffnest du den Lebensplaner dagegen außerhalb davon (z. B. als reine GitHub-Pages-Seite), schlägt dieser API-Aufruf fehl und Vale zeigt eine Fehlermeldung im Chat statt einer echten Antwort; Menü, Vokabelheft-Verwaltung und Quiz-Oberfläche selbst funktionieren davon unabhängig. Ein vollständig offline funktionierender Ersatz-Chat ist nicht sinnvoll möglich, da Vales Kernfunktion (freies KI-Gespräch) sich nicht durch Regeln nachbilden lässt.
 
 ### KI-Assistent
 
