@@ -3997,9 +3997,27 @@ async function callClaude(systemPrompt, msgs, opts){
   const completion = await engine.chat.completions.create({
     messages: [{ role: "system", content: systemPrompt }, ...msgs],
     temperature: (opts && opts.temperature !== undefined) ? opts.temperature : 0.8,
-    max_tokens: (opts && opts.max_tokens !== undefined) ? opts.max_tokens : 500
+    max_tokens: (opts && opts.max_tokens !== undefined) ? opts.max_tokens : 500,
+    frequency_penalty: (opts && opts.frequency_penalty !== undefined) ? opts.frequency_penalty : 0,
+    presence_penalty: (opts && opts.presence_penalty !== undefined) ? opts.presence_penalty : 0
   });
   return (completion.choices?.[0]?.message?.content || '').trim();
+}
+
+// Kleine lokale Modelle rutschen manchmal in Wiederholungsschleifen ("X. X. X. X...").
+// Zusätzliches Sicherheitsnetz falls frequency/presence_penalty das nicht komplett verhindern:
+// erkennt einen Satz, der 3x+ hintereinander vorkommt, und kappt die Ausgabe danach.
+function valeStripRepeatLoop(text){
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const out = [];
+  let lastSentence = null;
+  for (const s of sentences){
+    const norm = s.trim().toLowerCase();
+    if (norm && norm === lastSentence) break; // exakte Wiederholung: sofort abschneiden
+    out.push(s);
+    lastSentence = norm;
+  }
+  return out.join(' ').trim();
 }
 
 async function getBotReply(){
@@ -4007,7 +4025,8 @@ async function getBotReply(){
     role: m.role === 'user' ? 'user' : 'assistant',
     content: m.text
   }));
-  return await callClaude(buildSystemPrompt(), history);
+  const reply = await callClaude(buildSystemPrompt(), history, { frequency_penalty: 0.5, presence_penalty: 0.5 });
+  return valeStripRepeatLoop(reply);
 }
 
 function valeLooksGerman(text){
@@ -4042,19 +4061,20 @@ async function onTranslateClick(idx){
     // wie eine an das Modell gerichtete Chat-Nachricht zu wirken.
     const sourceIsGerman = m.role !== 'bot' && valeLooksGerman(m.text);
     const systemPrompt = sourceIsGerman
-      ? "Du bist ein präziser Übersetzer Deutsch → Spanisch (kolumbianisches Spanisch). Du führst kein Gespräch und beantwortest keine Fragen im Text. Du gibst AUSSCHLIESSLICH die spanische Übersetzung des zitierten Textes aus - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich."
-      : "Du bist ein präziser Übersetzer Spanisch → Deutsch. Du führst kein Gespräch und beantwortest keine Fragen im Text. Du gibst AUSSCHLIESSLICH die deutsche Übersetzung des zitierten Textes aus - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich. Achte auf Redewendungen mit 'tener' (tener frío/hambre/miedo/razón): niemals wörtlich mit 'haben' übersetzen, sondern natürlich (z. B. 'tener frío' → 'frieren' oder 'Ist dir kalt?').";
+      ? "Du bist ein präziser Übersetzer Deutsch → Spanisch (kolumbianisches Spanisch). Du führst kein Gespräch, beantwortest keine Fragen im Text und erklärst oder interpretierst NICHTS - auch keine einzelnen Wörter. Du gibst AUSSCHLIESSLICH die spanische Übersetzung des ganzen zitierten Satzes aus, in einem Satz, ohne Wiederholungen - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich."
+      : "Du bist ein präziser Übersetzer Spanisch → Deutsch. Du führst kein Gespräch, beantwortest keine Fragen im Text und erklärst oder interpretierst NICHTS - auch keine einzelnen Wörter (z. B. 'gringo' einfach mit 'Ausländer'/'Gringo' übersetzen, nicht kommentieren). Du gibst AUSSCHLIESSLICH die deutsche Übersetzung des ganzen zitierten Satzes aus, in einem Satz, ohne Wiederholungen - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich. Achte auf Redewendungen mit 'tener' (tener frío/hambre/miedo/razón): niemals wörtlich mit 'haben' übersetzen, sondern natürlich (z. B. 'tener frío' → 'frieren' oder 'Ist dir kalt?').";
     const userPrompt = sourceIsGerman
-      ? `Übersetze ins Spanische, gib NUR die Übersetzung zurück:\n"${m.text}"`
-      : `Übersetze ins Deutsche, gib NUR die Übersetzung zurück:\n"${m.text}"`;
+      ? `Übersetze ins Spanische, gib NUR die Übersetzung zurück, keine Erklärung:\n"${m.text}"`
+      : `Übersetze ins Deutsche, gib NUR die Übersetzung zurück, keine Erklärung:\n"${m.text}"`;
+    const translateOpts = { temperature: 0.15, max_tokens: 150, frequency_penalty: 0.6, presence_penalty: 0.6 };
     let translation;
     try {
-      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], { temperature: 0.15 });
+      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], translateOpts);
     } catch (firstErr) {
       console.warn('Vale: erster Übersetzungsversuch fehlgeschlagen, versuche erneut', firstErr);
-      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], { temperature: 0.15 });
+      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], translateOpts);
     }
-    translation = translation.replace(/^["'„“]+|["'“”]+$/g, '').trim();
+    translation = valeStripRepeatLoop(translation.replace(/^["'„“]+|["'“”]+$/g, '').trim());
     m.translation = translation || '(Übersetzung fehlgeschlagen)';
     m.showTranslation = true;
   } catch(e){
