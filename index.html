@@ -4047,16 +4047,20 @@ async function onTranslateClick(idx){
     const userPrompt = sourceIsGerman
       ? `Übersetze ins Spanische, gib NUR die Übersetzung zurück:\n"${m.text}"`
       : `Übersetze ins Deutsche, gib NUR die Übersetzung zurück:\n"${m.text}"`;
-    let translation = await callClaude(
-      systemPrompt,
-      [{ role:'user', content: userPrompt }],
-      { temperature: 0.15 }
-    );
+    let translation;
+    try {
+      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], { temperature: 0.15 });
+    } catch (firstErr) {
+      console.warn('Vale: erster Übersetzungsversuch fehlgeschlagen, versuche erneut', firstErr);
+      translation = await callClaude(systemPrompt, [{ role:'user', content: userPrompt }], { temperature: 0.15 });
+    }
     translation = translation.replace(/^["'„“]+|["'“”]+$/g, '').trim();
     m.translation = translation || '(Übersetzung fehlgeschlagen)';
     m.showTranslation = true;
   } catch(e){
-    m.translation = 'Fehler bei der Übersetzung.';
+    console.error('Vale: Übersetzung endgültig fehlgeschlagen', e);
+    const detail = (e && e.message) ? String(e.message).slice(0, 140) : String(e).slice(0, 140);
+    m.translation = 'Fehler bei der Übersetzung: ' + detail;
     m.showTranslation = true;
   }
   m.translating = false;
@@ -4196,6 +4200,7 @@ async function initGreeting(){
     showTyping(false);
     state.messages.push({ role:'bot', text: greeting || '¡Hola! ¿Cómo estás? 😄', translation:null, showTranslation:false, translating:false });
   } catch(e){
+    console.error('Vale: Begrüßung fehlgeschlagen', e);
     showTyping(false);
     state.messages.push({ role:'bot', text:'¡Hola! ¿Cómo estás? 😄', translation:null, showTranslation:false, translating:false });
   }
@@ -4226,6 +4231,7 @@ async function sendMessage(){
     showTyping(false);
     activeMessages().push({ role:'bot', text: reply || '¡Uy, se me fue la señal! ¿Me repites?', translation:null, showTranslation:false, translating:false });
   } catch(e){
+    console.error('Vale: Chat-Antwort fehlgeschlagen', e);
     showTyping(false);
     activeMessages().push({ role:'bot', text:'Uy, hubo un error de conexión. ¿Intentamos de nuevo?', translation:null, showTranslation:false, translating:false });
   }
