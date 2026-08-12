@@ -46,8 +46,13 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Finanzen | `data/finances.json` | Budgets, Ausgaben, Sparziele mit Fortschrittsbalken |
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
 | KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
+| Gmail | – (nur `localStorage`) | Öffnet eines von 3 Gmail-Konten als Popup-Fenster (`window.open`, kein iframe/OAuth); Kontonamen frei umbenennbar |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
+
+### Gmail
+
+Kein iframe (Google blockiert das Einbetten von Gmail per `X-Frame-Options` ohnehin) und kein OAuth – stattdessen öffnet ein Klick auf einen der drei Menüpunkte ein Browser-Popup (`window.open`, ca. 1000×700px, zentriert) auf `https://mail.google.com/mail/u/{0,1,2}/`. Jedes Konto hat einen festen Fenster-Namen (`gmail-konto-1/2/3`), sodass ein erneuter Klick das bereits offene Popup wieder in den Vordergrund holt statt ein weiteres zu öffnen. Die Anmeldung läuft über die normale Google-Session im Browser – es werden keine Zugangsdaten, Tokens oder Secrets gespeichert. Die Kontonamen ("Privat"/"Arbeit"/"Projekt X" als Default) lassen sich über das Stift-Icon direkt im Menü umbenennen und werden nur lokal im `localStorage` gespeichert (kein GitHub-Sync nötig).
 
 ### KI-Assistent
 
