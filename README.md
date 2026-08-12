@@ -47,12 +47,17 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
 | KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
 | Gmail | – (nur `localStorage`) | Öffnet eines von 3 Gmail-Konten als Popup-Fenster (`window.open`, kein iframe/OAuth); Kontonamen frei umbenennbar |
+| Spanisch lernen | – | Öffnet den separaten "Vale"-Sprachlern-Chat als Popup-Fenster |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
 
 ### Gmail
 
 Kein iframe (Google blockiert das Einbetten von Gmail per `X-Frame-Options` ohnehin) und kein OAuth – stattdessen öffnet ein Klick auf einen der drei Menüpunkte ein Browser-Popup (`window.open`, ca. 1000×700px, zentriert) auf `https://accounts.google.com/AccountChooser?Email={E-Mail}&continue=https://mail.google.com/mail/`. Das adressiert das Konto zuverlässig über die hinterlegte E-Mail-Adresse statt über den instabilen `u/0`/`u/1`/`u/2`-Index (der sich je nach zuletzt aktivem Konto im Browser verschiebt). Jedes Konto hat einen festen Fenster-Namen (`gmail-konto-1/2/3`), sodass ein erneuter Klick das bereits offene Popup wieder in den Vordergrund holt statt ein weiteres zu öffnen. Die Anmeldung läuft über die normale Google-Session im Browser – es werden keine Zugangsdaten, Tokens oder Secrets gespeichert. Anzeigename und E-Mail-Adresse jedes Kontos ("Privat"/"Arbeit"/"Projekt X" als Default, ohne E-Mail) lassen sich über das Stift-Icon direkt im Menü bearbeiten und werden nur lokal im `localStorage` gespeichert (kein GitHub-Sync nötig). Ohne hinterlegte E-Mail-Adresse ist der Menüpunkt für dieses Konto deaktiviert.
+
+### Spanisch lernen
+
+Öffnet den separat gepflegten "Vale"-Sprachlern-Chat (kolumbianisches Spanisch) als Popup-Fenster mit festem Fenster-Namen (`spanisch-lernen`), analog zu Gmail. Bewusst **nicht** als Code in `index.html` mit eingebaut: Vale erzeugt Chat-Antworten, Korrekturen, automatische Vokabel-Erkennung und Übersetzungen über einen Live-Aufruf der Anthropic-API, der ohne eigenen API-Key nur innerhalb der Artifact-Umgebung funktioniert (dort wird der Zugriff automatisch von der Plattform autorisiert). Außerhalb davon – z. B. als reine GitHub-Pages-Datei – würde dieser Aufruf fehlschlagen, und ein Nachbau mit den Offline-Regeln des KI-Assistenten wäre für einen freien KI-Chat nicht sinnvoll möglich. Der Popup-Link verweist daher auf die separat gehostete Artifact-Version, in der Vale mit voller Funktion läuft.
 
 ### KI-Assistent
 
