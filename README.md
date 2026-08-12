@@ -47,7 +47,7 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
 | KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
 | Gmail | – (nur `localStorage`) | Öffnet eines von 3 Gmail-Konten als Popup-Fenster (`window.open`, kein iframe/OAuth); Kontonamen frei umbenennbar |
-| Spanisch lernen | – (nur `localStorage`) | "Vale" – Chat-Sprachpartnerin für kolumbianisches Spanisch, direkt als eigenes Modul eingebettet (Chat, Vokabelheft, Quiz, Rollenspiel) |
+| Spanisch lernen | – (nur `localStorage`) | "Vale" – Chat-Sprachpartnerin für kolumbianisches Spanisch mit lokalem Offline-KI-Modell (WebLLM, kein API-Key); Chat, Vokabelheft, Quiz, Rollenspiel |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
 
@@ -59,7 +59,13 @@ Kein iframe (Google blockiert das Einbetten von Gmail per `X-Frame-Options` ohne
 
 Der "Vale"-Sprachlern-Chat (kolumbianisches Spanisch: freies Chatten, Korrekturen, automatische Vokabel-Erkennung, Übersetzungen, Karteikarten-/Schreib-Quiz, Rollenspiel) ist direkt als eigenes Modul in `index.html` eingebettet (`renderSpanish` + `initSpanishApp`, CSS unter dem Präfix `.vale-app` isoliert, damit nichts mit dem restlichen Lebensplaner-Styling kollidiert). Vales eigener Zustand (Chatverlauf, Streak, Level, Vokabelheft) liegt in `localStorage` statt im GitHub-Repo.
 
-**Wichtige Einschränkung:** Chat-Antworten, Korrekturen, Vokabel-Erkennung und Übersetzungen laufen über einen Live-Aufruf von `api.anthropic.com`, der ohne eigenen API-Key im Code auskommt. Das funktioniert nur innerhalb einer Claude-Artifact-Umgebung, wo die Plattform den Zugriff automatisch autorisiert – dort läuft Vale mit voller Funktion. Öffnest du den Lebensplaner dagegen außerhalb davon (z. B. als reine GitHub-Pages-Seite), schlägt dieser API-Aufruf fehl und Vale zeigt eine Fehlermeldung im Chat statt einer echten Antwort; Menü, Vokabelheft-Verwaltung und Quiz-Oberfläche selbst funktionieren davon unabhängig. Ein vollständig offline funktionierender Ersatz-Chat ist nicht sinnvoll möglich, da Vales Kernfunktion (freies KI-Gespräch) sich nicht durch Regeln nachbilden lässt.
+**KI-Backend: lokales Offline-Modell statt API-Key.** Chat-Antworten, Korrekturen, Vokabel-Erkennung und Übersetzungen laufen nicht mehr über die Anthropic-API, sondern über ein Sprachmodell (`Llama-3.2-1B-Instruct`, quantisiert), das per [WebLLM](https://github.com/mlc-ai/web-llm) direkt im Browser läuft (WebGPU). Kein API-Key, keine Serverkosten, keine Artifact-Abhängigkeit mehr – funktioniert auch auf einer reinen GitHub-Pages-Seite.
+
+- **Einmaliger Download:** ca. 800 MB beim ersten Klick auf "Modell laden" im Chat-Screen, danach vom Browser gecacht (IndexedDB/Cache Storage) und beim nächsten Öffnen sofort verfügbar, auch offline.
+- **Bewusst kein Auto-Download:** Der Download startet nur nach explizitem Klick, nie automatisch im Hintergrund – bei 800 MB soll das niemanden unerwartet Datenvolumen kosten. Bis dahin zeigt eine Leiste im Chat-Screen den Status und blockiert Senden/Übersetzen mit einem Hinweis statt einer stillen Fehlermeldung.
+- **Voraussetzung WebGPU:** Nötig ist ein Browser mit WebGPU-Unterstützung (aktuelles Chrome/Edge auf dem Desktop funktioniert gut; Safari und die meisten mobilen Browser (noch) nicht zuverlässig). Ohne WebGPU zeigt die Leiste einen klaren Hinweis statt eines stillen Fehlschlags.
+- **Qualitäts-Tradeoff:** Ein 1B-Parameter-Modell ist spürbar einfacher als ein großes Cloud-Modell – für lockeren Übungs-Chat auf Anfängerniveau ausreichend, aber weniger nuanciert bei komplexeren Korrekturen oder Rollenspiel-Antworten als die ursprüngliche Claude-Anbindung.
+- Engine-Zustand (`valeEngine`) liegt bewusst außerhalb von `initSpanishApp` im äußeren Scope von `index.html`, damit das Modell beim Wechsel zwischen Lebensplaner-Reitern nicht bei jedem Besuch neu initialisiert werden muss.
 
 ### KI-Assistent
 

@@ -661,6 +661,35 @@ textarea.journal-text { min-height: 100px; resize: vertical; }
   }
 .vale-app .steam-line{ animation:steamRise 1.6s ease-in-out infinite; }
 .vale-app .steam-line.s2{ animation-delay:0.5s; }
+.vale-app .model-bar{
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  padding:12px 16px;
+  background:rgba(214,164,69,0.1);
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.vale-app .model-bar.visible{ display:flex; }
+.vale-app .model-bar-text{ display:flex; flex-direction:column; gap:2px; }
+.vale-app .model-bar-text strong{ font-size:13px; color:var(--crema); }
+.vale-app .model-bar-text span{ font-size:11.5px; color:var(--crema-dim); line-height:1.4; }
+.vale-app .model-bar-progress{ height:6px; border-radius:4px; background:var(--espresso-well); overflow:hidden; }
+.vale-app .model-bar-progress-fill{ height:100%; width:0%; background:var(--gold); transition:width .2s; }
+.vale-app .model-bar-btn{
+  align-self:flex-start;
+  padding:8px 14px;
+  border-radius:10px;
+  border:1px solid var(--gold);
+  background:rgba(214,164,69,0.15);
+  color:var(--gold);
+  font-family:'Karla', sans-serif;
+  font-weight:700;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.vale-app .model-bar-btn:hover{ background:rgba(214,164,69,0.25); }
+.vale-app .model-bar-btn:disabled{ opacity:0.6; cursor:default; }
 .vale-app /* INPUT */
   .input-bar{
     display:flex;
@@ -2826,8 +2855,43 @@ function renderAssistant(root) {
 }
 
 /* =========================================================================
-   VIEW: SPANISCH LERNEN (Vale)
+   VIEW: SPANISCH LERNEN (Vale) - lokales Offline-KI-Modell
    ========================================================================= */
+const VALE_MODEL_ID = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+let valeEngine = null;
+let valeEngineLoadPromise = null;
+let valeEngineStatus = "idle"; // idle | loading | ready | error | unsupported
+
+function valeWebGpuSupported() {
+  return typeof navigator !== "undefined" && "gpu" in navigator;
+}
+
+async function ensureValeEngine(onProgress) {
+  if (valeEngine) return valeEngine;
+  if (valeEngineLoadPromise) return valeEngineLoadPromise;
+  if (!valeWebGpuSupported()) {
+    valeEngineStatus = "unsupported";
+    throw new Error("Dieses Gerät/Browser unterstützt WebGPU nicht - das lokale KI-Modell kann hier nicht laufen.");
+  }
+  valeEngineStatus = "loading";
+  valeEngineLoadPromise = (async () => {
+    const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+    const engine = await webllm.CreateMLCEngine(VALE_MODEL_ID, {
+      initProgressCallback: (report) => { if (onProgress) onProgress(report); }
+    });
+    valeEngine = engine;
+    valeEngineStatus = "ready";
+    return engine;
+  })();
+  try {
+    return await valeEngineLoadPromise;
+  } catch (err) {
+    valeEngineStatus = "error";
+    valeEngineLoadPromise = null;
+    throw err;
+  }
+}
+
 function renderSpanish(root) {
   root.innerHTML = `<div class="vale-app">
 
@@ -2926,6 +2990,17 @@ function renderSpanish(root) {
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
       </button>
+    </div>
+
+    <div class="model-bar" id="valeModelBar">
+      <div class="model-bar-text">
+        <strong id="valeModelTitle">🧠 Offline-KI-Modell nötig</strong>
+        <span id="valeModelSub">Läuft komplett lokal im Browser, kein API-Key. Einmaliger Download (~800&nbsp;MB), danach offline nutzbar.</span>
+      </div>
+      <div class="model-bar-progress" id="valeModelProgressWrap" style="display:none;">
+        <div class="model-bar-progress-fill" id="valeModelProgressFill"></div>
+      </div>
+      <button type="button" class="model-bar-btn" id="valeModelLoadBtn">Modell laden</button>
     </div>
 
     <div class="chat screen-body" id="chat"></div>
@@ -3081,6 +3156,67 @@ let state = {
 const chatEl = root.querySelector('#chat');
 const inputEl = root.querySelector('#userInput');
 const sendBtn = root.querySelector('#sendBtn');
+const valeModelBar = root.querySelector('#valeModelBar');
+const valeModelTitle = root.querySelector('#valeModelTitle');
+const valeModelSub = root.querySelector('#valeModelSub');
+const valeModelProgressWrap = root.querySelector('#valeModelProgressWrap');
+const valeModelProgressFill = root.querySelector('#valeModelProgressFill');
+const valeModelLoadBtn = root.querySelector('#valeModelLoadBtn');
+
+function refreshValeModelBar(){
+  if (!valeWebGpuSupported()){
+    valeModelBar.classList.add('visible');
+    valeModelTitle.textContent = '⚠️ Offline-KI hier nicht verfügbar';
+    valeModelSub.textContent = 'Dieser Browser/dieses Gerät unterstützt WebGPU nicht. Versuch es mit aktuellem Chrome/Edge auf dem Desktop.';
+    valeModelLoadBtn.style.display = 'none';
+    valeModelProgressWrap.style.display = 'none';
+    return;
+  }
+  if (valeEngineStatus === 'ready'){
+    valeModelBar.classList.remove('visible');
+    return;
+  }
+  valeModelBar.classList.add('visible');
+  valeModelLoadBtn.style.display = 'inline-block';
+  if (valeEngineStatus === 'loading'){
+    valeModelTitle.textContent = '🧠 Modell wird geladen…';
+    valeModelSub.textContent = 'Beim ersten Mal ca. 800 MB Download, danach aus dem Cache – bitte Tab offen lassen.';
+    valeModelLoadBtn.disabled = true;
+    valeModelLoadBtn.textContent = 'Lädt…';
+    valeModelProgressWrap.style.display = 'block';
+  } else if (valeEngineStatus === 'error'){
+    valeModelTitle.textContent = '❌ Laden fehlgeschlagen';
+    valeModelSub.textContent = 'Das Modell konnte nicht geladen werden. Prüfe deine Internetverbindung und versuch es erneut.';
+    valeModelLoadBtn.disabled = false;
+    valeModelLoadBtn.textContent = 'Erneut versuchen';
+    valeModelProgressWrap.style.display = 'none';
+  } else {
+    valeModelTitle.textContent = '🧠 Offline-KI-Modell nötig';
+    valeModelSub.textContent = 'Läuft komplett lokal im Browser, kein API-Key. Einmaliger Download (~800 MB), danach offline nutzbar.';
+    valeModelLoadBtn.disabled = false;
+    valeModelLoadBtn.textContent = 'Modell laden';
+    valeModelProgressWrap.style.display = 'none';
+  }
+}
+
+async function startValeModelLoad(){
+  if (valeEngineStatus === 'loading' || valeEngineStatus === 'ready') return;
+  refreshValeModelBar();
+  try {
+    await ensureValeEngine((report) => {
+      const pct = Math.round((report.progress || 0) * 100);
+      valeModelProgressFill.style.width = pct + '%';
+      if (report.text) valeModelSub.textContent = report.text;
+      refreshValeModelBar();
+    });
+  } catch (e) {
+    console.error('Vale-Modell laden fehlgeschlagen', e);
+  }
+  refreshValeModelBar();
+}
+
+valeModelLoadBtn.addEventListener('click', startValeModelLoad);
+refreshValeModelBar();
 const streakNumEl = root.querySelector('#streakNum');
 const homeStreakNumEl = root.querySelector('#homeStreakNum');
 const settingsBtn = root.querySelector('#settingsBtn');
@@ -3857,18 +3993,13 @@ function buildSystemPrompt(){
 }
 
 async function callClaude(systemPrompt, msgs){
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: msgs
-    })
+  const engine = await ensureValeEngine();
+  const completion = await engine.chat.completions.create({
+    messages: [{ role: "system", content: systemPrompt }, ...msgs],
+    temperature: 0.8,
+    max_tokens: 500
   });
-  const data = await response.json();
-  return (data.content || []).map(b => b.type === 'text' ? b.text : '').join('').trim();
+  return (completion.choices?.[0]?.message?.content || '').trim();
 }
 
 async function getBotReply(){
@@ -3885,6 +4016,11 @@ async function onTranslateClick(idx){
     m.showTranslation = !m.showTranslation;
     renderMessages();
     await saveState();
+    return;
+  }
+  if (valeEngineStatus !== 'ready'){
+    valeModelBar.scrollIntoView({ behavior:'smooth', block:'center' });
+    refreshValeModelBar();
     return;
   }
   m.translating = true;
@@ -4022,6 +4158,12 @@ async function runImport(rawText){
 }
 
 async function initGreeting(){
+  if (valeEngineStatus !== 'ready'){
+    state.messages.push({ role:'bot', text:'¡Hola! Ich bin startklar, sobald du unten das Offline-KI-Modell geladen hast. 😊', translation:null, showTranslation:false, translating:false });
+    renderMessages();
+    await saveState();
+    return;
+  }
   showTyping(true);
   try {
     const greeting = await callClaude(
@@ -4041,6 +4183,11 @@ async function initGreeting(){
 async function sendMessage(){
   const text = inputEl.value.trim();
   if (!text) return;
+  if (valeEngineStatus !== 'ready'){
+    valeModelBar.scrollIntoView({ behavior:'smooth', block:'center' });
+    refreshValeModelBar();
+    return;
+  }
   inputEl.value = '';
   sendBtn.disabled = true;
 
