@@ -3992,12 +3992,12 @@ function buildSystemPrompt(){
     '- Si el usuario escribe en alemán porque se atascó, respóndele igual mayormente en español, y si ayuda, aclara una palabra clave en alemán entre paréntesis.';
 }
 
-async function callClaude(systemPrompt, msgs){
+async function callClaude(systemPrompt, msgs, opts){
   const engine = await ensureValeEngine();
   const completion = await engine.chat.completions.create({
     messages: [{ role: "system", content: systemPrompt }, ...msgs],
-    temperature: 0.8,
-    max_tokens: 500
+    temperature: (opts && opts.temperature !== undefined) ? opts.temperature : 0.8,
+    max_tokens: (opts && opts.max_tokens !== undefined) ? opts.max_tokens : 500
   });
   return (completion.choices?.[0]?.message?.content || '').trim();
 }
@@ -4008,6 +4008,13 @@ async function getBotReply(){
     content: m.text
   }));
   return await callClaude(buildSystemPrompt(), history);
+}
+
+function valeLooksGerman(text){
+  const t = ' ' + text.toLowerCase() + ' ';
+  const deHits = (t.match(/[äöüß]|\b(ich|und|nicht|der|die|das|ist|habe|bin|du|wir|sein|mit|auch|aber|wie|was|wo|warum|heute|morgen|gut|schlecht)\b/g) || []).length;
+  const esHits = (t.match(/[áéíóúñ¿¡]|\b(que|el|la|de|es|no|en|un|una|estoy|tengo|con|para|pero|cómo|qué|por|hoy|mañana|bien|mal)\b/g) || []).length;
+  return deHits > esHits;
 }
 
 async function onTranslateClick(idx){
@@ -4026,9 +4033,18 @@ async function onTranslateClick(idx){
   m.translating = true;
   renderMessages();
   try {
+    // Ein kleines lokales Modell erkennt "automatisch Sprache X oder Y" oft nicht zuverlässig
+    // und dichtet stattdessen einfach weiteren spanischen Text. Deshalb wird die Richtung hier
+    // in JS festgelegt (bei Vale-Nachrichten ist die Quelle immer Spanisch) statt dem Modell
+    // die Erkennung zu überlassen - das ergibt deutlich zuverlässigere Übersetzungen.
+    const sourceIsGerman = m.role !== 'bot' && valeLooksGerman(m.text);
+    const systemPrompt = sourceIsGerman
+      ? "Übersetze den folgenden deutschen Text ins Spanische (kolumbianisches Spanisch). Antworte NUR mit der spanischen Übersetzung - natürlich und idiomatisch, niemals wörtlich, ohne Erklärungen, ohne Anführungszeichen, ohne den Originaltext zu wiederholen."
+      : "Traduce el siguiente texto español al alemán. Responde ÚNICAMENTE con la traducción alemana, natural e idiomática, nunca palabra por palabra, sin explicaciones, sin comillas y sin repetir el texto original. Cuidado con expresiones con 'tener' (tener frío/hambre/miedo/razón): nunca se traducen literalmente con 'haben'; usa la forma alemana natural (p. ej. 'tener frío' → 'frieren' o 'Ist dir kalt?').";
     const translation = await callClaude(
-      "Eres un traductor profesional entre español y alemán. Detecta automáticamente el idioma del texto (español o alemán) y tradúcelo al otro idioma con una traducción NATURAL e IDIOMÁTICA, nunca palabra por palabra. Presta especial cuidado con expresiones que no se traducen literalmente, como las construcciones con 'tener' (tener frío/hambre/miedo/razón...): 'tener frío' es 'frieren' o 'Ist dir kalt?', NUNCA 'kalt haben'. Responde ÚNICAMENTE con la traducción, sin explicaciones ni comillas.",
-      [{ role:'user', content: m.text }]
+      systemPrompt,
+      [{ role:'user', content: m.text }],
+      { temperature: 0.2 }
     );
     m.translation = translation || '(Übersetzung fehlgeschlagen)';
     m.showTranslation = true;
