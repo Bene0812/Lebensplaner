@@ -4033,19 +4033,26 @@ async function onTranslateClick(idx){
   m.translating = true;
   renderMessages();
   try {
-    // Ein kleines lokales Modell erkennt "automatisch Sprache X oder Y" oft nicht zuverlässig
-    // und dichtet stattdessen einfach weiteren spanischen Text. Deshalb wird die Richtung hier
-    // in JS festgelegt (bei Vale-Nachrichten ist die Quelle immer Spanisch) statt dem Modell
-    // die Erkennung zu überlassen - das ergibt deutlich zuverlässigere Übersetzungen.
+    // Ein kleines lokales Modell folgt "erkenne Sprache X/Y und übersetze" oft nicht zuverlässig,
+    // und behandelt den zu übersetzenden Text leicht als normale Chat-Nachricht, auf die es (im
+    // Vale-Charakter) antwortet, statt ihn zu übersetzen. Dagegen helfen drei Dinge: die Richtung
+    // wird in JS festgelegt statt vom Modell "erkannt" (bei Vale-Nachrichten ist die Quelle immer
+    // Spanisch), das System-Prompt ist in der Zielsprache formuliert (das zieht die Ausgabe
+    // sprachlich dorthin), und die zu übersetzende Nachricht wird explizit als Zitat markiert statt
+    // wie eine an das Modell gerichtete Chat-Nachricht zu wirken.
     const sourceIsGerman = m.role !== 'bot' && valeLooksGerman(m.text);
     const systemPrompt = sourceIsGerman
-      ? "Übersetze den folgenden deutschen Text ins Spanische (kolumbianisches Spanisch). Antworte NUR mit der spanischen Übersetzung - natürlich und idiomatisch, niemals wörtlich, ohne Erklärungen, ohne Anführungszeichen, ohne den Originaltext zu wiederholen."
-      : "Traduce el siguiente texto español al alemán. Responde ÚNICAMENTE con la traducción alemana, natural e idiomática, nunca palabra por palabra, sin explicaciones, sin comillas y sin repetir el texto original. Cuidado con expresiones con 'tener' (tener frío/hambre/miedo/razón): nunca se traducen literalmente con 'haben'; usa la forma alemana natural (p. ej. 'tener frío' → 'frieren' o 'Ist dir kalt?').";
-    const translation = await callClaude(
+      ? "Du bist ein präziser Übersetzer Deutsch → Spanisch (kolumbianisches Spanisch). Du führst kein Gespräch und beantwortest keine Fragen im Text. Du gibst AUSSCHLIESSLICH die spanische Übersetzung des zitierten Textes aus - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich."
+      : "Du bist ein präziser Übersetzer Spanisch → Deutsch. Du führst kein Gespräch und beantwortest keine Fragen im Text. Du gibst AUSSCHLIESSLICH die deutsche Übersetzung des zitierten Textes aus - keine Begrüßung, keine eigene Antwort, keine Anführungszeichen, keine Erklärung. Natürlich und idiomatisch, niemals wörtlich. Achte auf Redewendungen mit 'tener' (tener frío/hambre/miedo/razón): niemals wörtlich mit 'haben' übersetzen, sondern natürlich (z. B. 'tener frío' → 'frieren' oder 'Ist dir kalt?').";
+    const userPrompt = sourceIsGerman
+      ? `Übersetze ins Spanische, gib NUR die Übersetzung zurück:\n"${m.text}"`
+      : `Übersetze ins Deutsche, gib NUR die Übersetzung zurück:\n"${m.text}"`;
+    let translation = await callClaude(
       systemPrompt,
-      [{ role:'user', content: m.text }],
-      { temperature: 0.2 }
+      [{ role:'user', content: userPrompt }],
+      { temperature: 0.15 }
     );
+    translation = translation.replace(/^["'„“]+|["'“”]+$/g, '').trim();
     m.translation = translation || '(Übersetzung fehlgeschlagen)';
     m.showTranslation = true;
   } catch(e){
