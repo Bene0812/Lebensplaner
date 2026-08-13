@@ -41,7 +41,7 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Dashboard | – | Aggregierter Tagesüberblick über alle Module |
 | Ziele & Vision | `data/goals.json` | Ziele (1/5/10 Jahre), Lebensbereiche |
 | Kalender & Zeitplanung | `data/calendar.json` | Termine, Deadlines, wiederkehrende Events (Monatsansicht + Agenda) |
-| Aufgaben & Projekte | `data/tasks.json` | Bucket-Board pro Projekt (wie Microsoft Planner): Buckets per Drag & Drop oder Bearbeiten-Modal, Aufgaben mit Priorität und Fälligkeit |
+| Aufgaben & Projekte | `data/tasks.json` | Flaches Bucket-Board wie Microsoft Planner: alle Buckets stehen nebeneinander in einer Übersicht (kein Projekt-Umschalter mehr), Aufgaben per Drag & Drop zwischen Buckets verschiebbar oder über Bearbeiten-Modal, mit Priorität und Fälligkeit |
 | Gewohnheiten & Routinen | `data/habits.json` | Habit-Tracker mit Streaks (täglich) bzw. Wochenzielen |
 | Finanzen | `data/finances.json` | Budgets, Ausgaben, Sparziele mit Fortschrittsbalken |
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
