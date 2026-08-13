@@ -2254,6 +2254,14 @@ let tasksBoardProjectId = null;
 function renderTasks(root) {
   const data = STATE.tasks;
   if (!data.buckets) data.buckets = [];
+  if (!data.tasks) data.tasks = [];
+  if (!data.projects || data.projects.length === 0) {
+    // Kompatibilität mit Daten, die zwischenzeitlich vom projektlosen Bucket-Board gespeichert wurden.
+    data.projects = [{ id: "inbox", name: "Inbox", color: "#6b7280", archived: false }];
+    data.buckets.forEach(b => { if (!b.projectId) b.projectId = "inbox"; });
+    data.tasks.forEach(t => { if (!t.projectId) t.projectId = "inbox"; });
+    scheduleSave("tasks");
+  }
   const activeProjects = data.projects.filter(p => !p.archived);
   const today = todayISO();
 
