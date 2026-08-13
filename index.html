@@ -1403,6 +1403,7 @@ const DEFAULTS = {
   },
   calendar: { events: [] },
   tasks: {
+    projects: [{ id: "inbox", name: "Inbox", color: "#6b7280", archived: false }],
     buckets: [],
     tasks: []
   },
@@ -2246,52 +2247,46 @@ function renderCalendar(root) {
 }
 
 /* =========================================================================
-   VIEW: TASKS (Aufgaben & Projekte) - flaches Bucket-Board wie Microsoft Planner
+   VIEW: TASKS (Aufgaben & Projekte) - Bucket-Board wie Microsoft Planner
    ========================================================================= */
-function migrateTasksProjectsToBuckets(data) {
-  if (!data.projects || data.projects.length === 0) { delete data.projects; return; }
-  let globalOrder = 0;
-  data.projects.forEach(project => {
-    const projectBuckets = data.buckets.filter(b => b.projectId === project.id).sort((a, b) => (a.order || 0) - (b.order || 0));
-    if (projectBuckets.length === 0) {
-      data.buckets.push({ id: uid(), name: project.name, order: globalOrder++ });
-    } else {
-      // Erster Bucket des Projekts übernimmt dessen Namen, damit die Zuordnung als Bucket-Name erhalten bleibt.
-      projectBuckets[0].name = project.name;
-      projectBuckets.forEach(b => { b.order = globalOrder++; });
-    }
-  });
-  data.buckets.forEach(b => { delete b.projectId; });
-  data.tasks.forEach(t => { delete t.projectId; });
-  delete data.projects;
-  scheduleSave("tasks");
-}
+let tasksBoardProjectId = null;
 
 function renderTasks(root) {
   const data = STATE.tasks;
   if (!data.buckets) data.buckets = [];
-  migrateTasksProjectsToBuckets(data);
+  const activeProjects = data.projects.filter(p => !p.archived);
   const today = todayISO();
 
-  if (data.buckets.length === 0) {
-    data.buckets.push({ id: uid(), name: "Zu erledigen", order: 0 });
+  if (!tasksBoardProjectId || !activeProjects.some(p => p.id === tasksBoardProjectId)) {
+    tasksBoardProjectId = activeProjects[0]?.id || "inbox";
+  }
+
+  // Jedes Projekt bekommt beim ersten Öffnen automatisch einen Start-Bucket,
+  // analog zum "To do"-Bucket, den Microsoft Planner neuen Plänen mitgibt.
+  if (!data.buckets.some(b => b.projectId === tasksBoardProjectId)) {
+    data.buckets.push({ id: uid(), projectId: tasksBoardProjectId, name: "Zu erledigen", order: 0 });
     scheduleSave("tasks");
   }
 
-  const boardBuckets = data.buckets.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
-  const unassignedTasks = data.tasks.filter(t => !t.bucketId || !boardBuckets.some(b => b.id === t.bucketId));
+  const boardBuckets = data.buckets.filter(b => b.projectId === tasksBoardProjectId).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const boardTasks = data.tasks.filter(t => t.projectId === tasksBoardProjectId);
+  const unassignedTasks = boardTasks.filter(t => !t.bucketId || !boardBuckets.some(b => b.id === t.bucketId));
 
   function openTaskModal(taskId) {
     const t = data.tasks.find(t => t.id === taskId);
     if (!t) return;
+    const bucketsForProject = data.buckets.filter(b => b.projectId === t.projectId);
     openModal(`
       <div class="modal-header"><h3>Aufgabe bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
       <form id="modal-task-form">
         <div class="field"><label>Titel</label><input name="title" value="${escapeHtml(t.title)}" required></div>
+        <div class="field"><label>Projekt</label>
+          <select name="projectId">${data.projects.map(p => `<option value="${p.id}" ${t.projectId === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}</select>
+        </div>
         <div class="field"><label>Bucket</label>
-          <select name="bucketId">
+          <select name="bucketId" id="modal-task-bucket">
             <option value="">Kein Bucket</option>
-            ${boardBuckets.map(b => `<option value="${b.id}" ${t.bucketId === b.id ? "selected" : ""}>${escapeHtml(b.name)}</option>`).join("")}
+            ${bucketsForProject.map(b => `<option value="${b.id}" ${t.bucketId === b.id ? "selected" : ""}>${escapeHtml(b.name)}</option>`).join("")}
           </select>
         </div>
         <div class="field"><label>Priorität</label>
@@ -2313,6 +2308,11 @@ function renderTasks(root) {
     `, box => {
       box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
       box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      box.querySelector('[name="projectId"]').addEventListener("change", e => {
+        const newBuckets = data.buckets.filter(b => b.projectId === e.target.value);
+        box.querySelector("#modal-task-bucket").innerHTML =
+          `<option value="">Kein Bucket</option>` + newBuckets.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join("");
+      });
       box.querySelector("#modal-delete-btn").addEventListener("click", () => {
         data.tasks = data.tasks.filter(x => x.id !== taskId);
         scheduleSave("tasks"); closeModal(); renderTasks(root);
@@ -2320,7 +2320,7 @@ function renderTasks(root) {
       box.querySelector("#modal-task-form").addEventListener("submit", e => {
         e.preventDefault();
         const f = new FormData(e.target);
-        t.title = f.get("title");
+        t.title = f.get("title"); t.projectId = f.get("projectId");
         t.bucketId = f.get("bucketId") || null;
         t.priority = f.get("priority"); t.dueDate = f.get("dueDate") || null;
         scheduleSave("tasks"); closeModal(); renderTasks(root);
@@ -2398,9 +2398,25 @@ function renderTasks(root) {
   root.innerHTML = `
     <div class="section-header"><h1>Aufgaben &amp; Projekte</h1></div>
     <div class="card">
-      <h3>Alle Buckets</h3>
+      <h3>Projekte</h3>
+      <form id="project-form" class="form-inline">
+        <div class="field"><label>Neues Projekt</label><input name="name" placeholder="z. B. Umzug"></div>
+        <div class="field"><label>Farbe</label><input type="color" name="color" value="#3d63dd"></div>
+        <button class="btn" type="submit">Anlegen</button>
+      </form>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        ${activeProjects.map(p => `<span class="badge" style="background:${p.color}22; color:${p.color};">${escapeHtml(p.name)} ${p.id !== "inbox" ? `<button class="icon-btn" data-del-project="${p.id}">✕</button>` : ""}</span>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <div class="board-toolbar">
+        <label for="board-project-select">Projekt-Board:</label>
+        <select id="board-project-select">
+          ${activeProjects.map(p => `<option value="${p.id}" ${p.id === tasksBoardProjectId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}
+        </select>
+      </div>
       <div class="board-scroll" id="board-scroll">
-        ${boardBuckets.map(b => bucketColumnHtml(b, data.tasks.filter(t => t.bucketId === b.id))).join("")}
+        ${boardBuckets.map(b => bucketColumnHtml(b, boardTasks.filter(t => t.bucketId === b.id))).join("")}
         ${unassignedTasks.length ? bucketColumnHtml({ id: "__unassigned", name: "Ohne Bucket" }, unassignedTasks, true) : ""}
         <div class="add-bucket-column">
           <form id="add-bucket-form">
@@ -2411,12 +2427,36 @@ function renderTasks(root) {
     </div>
   `;
 
+  root.querySelector("#project-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const name = f.get("name")?.trim();
+    if (!name) return;
+    const project = { id: uid(), name, color: f.get("color"), archived: false };
+    data.projects.push(project);
+    data.buckets.push({ id: uid(), projectId: project.id, name: "Zu erledigen", order: 0 });
+    tasksBoardProjectId = project.id;
+    e.target.reset();
+    scheduleSave("tasks"); renderTasks(root);
+  });
+  root.querySelectorAll("[data-del-project]").forEach(btn => btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-del-project");
+    data.projects = data.projects.filter(p => p.id !== id);
+    data.buckets = data.buckets.filter(b => b.projectId !== id);
+    data.tasks = data.tasks.filter(t => t.projectId !== id);
+    if (tasksBoardProjectId === id) tasksBoardProjectId = null;
+    scheduleSave("tasks"); renderTasks(root);
+  }));
+  root.querySelector("#board-project-select").addEventListener("change", e => {
+    tasksBoardProjectId = e.target.value;
+    renderTasks(root);
+  });
   root.querySelector("#add-bucket-form").addEventListener("submit", e => {
     e.preventDefault();
     const name = new FormData(e.target).get("name").trim();
     if (!name) return;
-    const maxOrder = data.buckets.reduce((max, b) => Math.max(max, b.order || 0), 0);
-    data.buckets.push({ id: uid(), name, order: maxOrder + 1 });
+    const maxOrder = boardBuckets.reduce((max, b) => Math.max(max, b.order || 0), 0);
+    data.buckets.push({ id: uid(), projectId: tasksBoardProjectId, name, order: maxOrder + 1 });
     scheduleSave("tasks"); renderTasks(root);
   });
   root.querySelectorAll("[data-bucket-quickadd]").forEach(form => form.addEventListener("submit", e => {
@@ -2426,7 +2466,7 @@ function renderTasks(root) {
     const title = input.value.trim();
     if (!title) return;
     data.tasks.push({
-      id: uid(), title, bucketId,
+      id: uid(), title, projectId: tasksBoardProjectId, bucketId,
       priority: "medium", dueDate: null, done: false, createdAt: todayISO(), notes: ""
     });
     scheduleSave("tasks"); renderTasks(root);
