@@ -159,6 +159,9 @@ details.setup-help code { background: var(--bg); padding: 1px 5px; border-radius
 }
 .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--text-on-sidebar); }
 .nav-item.active { background: var(--accent); color: #fff; }
+.nav-item.disabled { opacity: 0.5; cursor: not-allowed; }
+.nav-item.disabled .label { text-decoration: line-through; }
+.nav-item.disabled:hover { background: none; color: var(--text-on-sidebar-muted); }
 .nav-item .icon { width: 20px; text-align: center; }
 #sidebar .sync-box { padding: 10px; font-size: 12px; color: var(--text-on-sidebar-muted); border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px; }
 
@@ -255,6 +258,29 @@ table.data-table td.num { text-align: right; }
 .cal-event { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .entry-title { cursor: pointer; }
 .entry-title:hover { text-decoration: underline; }
+
+.board-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.board-toolbar label { font-weight: 600; font-size: 13px; }
+.board-scroll { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
+.bucket-column { flex: 0 0 270px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; max-height: 75vh; }
+.bucket-header { display: flex; align-items: center; gap: 6px; padding: 12px 12px 8px 12px; }
+.bucket-name { flex: 1; font-weight: 700; font-size: 14px; }
+.bucket-tasks { flex: 1; overflow-y: auto; padding: 4px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 50px; }
+.bucket-tasks.drag-over { background: rgba(61,99,221,0.08); border-radius: 8px; }
+.task-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; cursor: grab; display: flex; flex-direction: column; gap: 6px; }
+.task-card:active { cursor: grabbing; }
+.task-card-top { display: flex; align-items: flex-start; gap: 8px; }
+.task-card-title { flex: 1; font-size: 13.5px; line-height: 1.35; }
+.task-card-title.done { text-decoration: line-through; color: var(--text-muted); }
+.task-card-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.bucket-quickadd { padding: 8px 12px 12px 12px; }
+.bucket-quickadd input { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; }
+.add-bucket-column { flex: 0 0 220px; }
+.add-bucket-input { width: 100%; height: 44px; padding: 0 14px; border: 1px dashed var(--border); border-radius: var(--radius); background: transparent; color: var(--text-muted); font-weight: 600; font-size: 13px; }
+.add-bucket-input:focus { border-style: solid; border-color: var(--accent); color: var(--text); }
+@media (max-width: 760px) {
+  .bucket-column, .add-bucket-column { flex-basis: 240px; }
+}
 
 .chat-card { display: flex; flex-direction: column; height: 60vh; min-height: 360px; padding: 0; overflow: hidden; }
 .chat-log { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -1358,7 +1384,7 @@ const MODULES = [
   { key: "finances",  label: "Finanzen", icon: "💰", file: "data/finances.json" },
   { key: "journal",   label: "Journal & Reflexion", icon: "📓", file: "data/journal.json" },
   { key: "gmail",     label: "Gmail", icon: "📧" },
-  { key: "spanish",   label: "Spanisch lernen", icon: "🇪🇸" },
+  { key: "spanish",   label: "Spanisch lernen (wird gewartet)", icon: "🇪🇸", disabled: true },
   { key: "assistant", label: "KI-Assistent", icon: "🤖" },
   { key: "settings",  label: "Einstellungen", icon: "⚙️" },
 ];
@@ -1378,6 +1404,7 @@ const DEFAULTS = {
   calendar: { events: [] },
   tasks: {
     projects: [{ id: "inbox", name: "Inbox", color: "#6b7280", archived: false }],
+    buckets: [],
     tasks: []
   },
   habits: { habits: [], checkins: {} },
@@ -1798,7 +1825,7 @@ window.addEventListener("hashchange", route);
 
 function renderNav() {
   const buildItems = () => MODULES.map(m => `
-    <a class="nav-item ${m.key === currentView ? "active" : ""}" data-nav="${m.key}">
+    <a class="nav-item ${m.key === currentView ? "active" : ""} ${m.disabled ? "disabled" : ""}" data-nav="${m.key}" ${m.disabled ? 'data-disabled="1"' : ""}>
       <span class="icon">${m.icon}</span><span class="label">${m.label}</span>
     </a>`).join("");
   const navList = document.getElementById("nav-list");
@@ -1807,6 +1834,7 @@ function renderNav() {
   bottomNav.innerHTML = buildItems();
   document.querySelectorAll("[data-nav]").forEach(el => {
     el.addEventListener("click", () => {
+      if (el.getAttribute("data-disabled")) return;
       const key = el.getAttribute("data-nav");
       if (key === "gmail") openGmailModal();
       else navigateTo(key);
@@ -2219,27 +2247,47 @@ function renderCalendar(root) {
 }
 
 /* =========================================================================
-   VIEW: TASKS (Aufgaben & Projekte)
+   VIEW: TASKS (Aufgaben & Projekte) - Bucket-Board wie Microsoft Planner
    ========================================================================= */
+let tasksBoardProjectId = null;
+
 function renderTasks(root) {
   const data = STATE.tasks;
+  if (!data.buckets) data.buckets = [];
   const activeProjects = data.projects.filter(p => !p.archived);
-  const projectOptions = activeProjects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
-  const projectName = id => data.projects.find(p => p.id === id)?.name || "Inbox";
   const today = todayISO();
 
-  const openTasks = data.tasks.filter(t => !t.done).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
-  const doneTasks = data.tasks.filter(t => t.done);
+  if (!tasksBoardProjectId || !activeProjects.some(p => p.id === tasksBoardProjectId)) {
+    tasksBoardProjectId = activeProjects[0]?.id || "inbox";
+  }
+
+  // Jedes Projekt bekommt beim ersten Öffnen automatisch einen Start-Bucket,
+  // analog zum "To do"-Bucket, den Microsoft Planner neuen Plänen mitgibt.
+  if (!data.buckets.some(b => b.projectId === tasksBoardProjectId)) {
+    data.buckets.push({ id: uid(), projectId: tasksBoardProjectId, name: "Zu erledigen", order: 0 });
+    scheduleSave("tasks");
+  }
+
+  const boardBuckets = data.buckets.filter(b => b.projectId === tasksBoardProjectId).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const boardTasks = data.tasks.filter(t => t.projectId === tasksBoardProjectId);
+  const unassignedTasks = boardTasks.filter(t => !t.bucketId || !boardBuckets.some(b => b.id === t.bucketId));
 
   function openTaskModal(taskId) {
     const t = data.tasks.find(t => t.id === taskId);
     if (!t) return;
+    const bucketsForProject = data.buckets.filter(b => b.projectId === t.projectId);
     openModal(`
       <div class="modal-header"><h3>Aufgabe bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
       <form id="modal-task-form">
         <div class="field"><label>Titel</label><input name="title" value="${escapeHtml(t.title)}" required></div>
         <div class="field"><label>Projekt</label>
           <select name="projectId">${data.projects.map(p => `<option value="${p.id}" ${t.projectId === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Bucket</label>
+          <select name="bucketId" id="modal-task-bucket">
+            <option value="">Kein Bucket</option>
+            ${bucketsForProject.map(b => `<option value="${b.id}" ${t.bucketId === b.id ? "selected" : ""}>${escapeHtml(b.name)}</option>`).join("")}
+          </select>
         </div>
         <div class="field"><label>Priorität</label>
           <select name="priority">
@@ -2260,6 +2308,11 @@ function renderTasks(root) {
     `, box => {
       box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
       box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      box.querySelector('[name="projectId"]').addEventListener("change", e => {
+        const newBuckets = data.buckets.filter(b => b.projectId === e.target.value);
+        box.querySelector("#modal-task-bucket").innerHTML =
+          `<option value="">Kein Bucket</option>` + newBuckets.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join("");
+      });
       box.querySelector("#modal-delete-btn").addEventListener("click", () => {
         data.tasks = data.tasks.filter(x => x.id !== taskId);
         scheduleSave("tasks"); closeModal(); renderTasks(root);
@@ -2268,10 +2321,78 @@ function renderTasks(root) {
         e.preventDefault();
         const f = new FormData(e.target);
         t.title = f.get("title"); t.projectId = f.get("projectId");
+        t.bucketId = f.get("bucketId") || null;
         t.priority = f.get("priority"); t.dueDate = f.get("dueDate") || null;
         scheduleSave("tasks"); closeModal(); renderTasks(root);
       });
     });
+  }
+
+  function openBucketModal(bucketId) {
+    const b = data.buckets.find(b => b.id === bucketId);
+    if (!b) return;
+    openModal(`
+      <div class="modal-header"><h3>Bucket bearbeiten</h3><button type="button" class="modal-close" id="modal-close-btn">✕</button></div>
+      <form id="modal-bucket-form">
+        <div class="field"><label>Name</label><input name="name" value="${escapeHtml(b.name)}" required></div>
+        <div class="modal-actions">
+          <button type="button" class="btn danger" id="modal-delete-btn">Löschen</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn" id="modal-cancel-btn">Abbrechen</button>
+            <button class="btn primary" type="submit">Speichern</button>
+          </div>
+        </div>
+      </form>
+    `, box => {
+      box.querySelector("#modal-close-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-cancel-btn").addEventListener("click", closeModal);
+      box.querySelector("#modal-delete-btn").addEventListener("click", () => {
+        data.buckets = data.buckets.filter(x => x.id !== bucketId);
+        data.tasks.forEach(t => { if (t.bucketId === bucketId) t.bucketId = null; });
+        scheduleSave("tasks"); closeModal(); renderTasks(root);
+      });
+      box.querySelector("#modal-bucket-form").addEventListener("submit", e => {
+        e.preventDefault();
+        const name = new FormData(e.target).get("name").trim();
+        if (name) b.name = name;
+        scheduleSave("tasks"); closeModal(); renderTasks(root);
+      });
+    });
+  }
+
+  function taskCardHtml(t) {
+    const overdue = t.dueDate && t.dueDate < today && !t.done;
+    return `
+      <div class="task-card" draggable="true" data-drag-task="${t.id}">
+        <div class="task-card-top">
+          <input type="checkbox" data-toggle-task="${t.id}" ${t.done ? "checked" : ""}>
+          <span class="task-card-title entry-title ${t.done ? "done" : ""}" data-edit-task="${t.id}">${escapeHtml(t.title)}</span>
+        </div>
+        <div class="task-card-meta">
+          <span class="badge ${t.priority}">${{ low: "Niedrig", medium: "Mittel", high: "Hoch" }[t.priority]}</span>
+          ${t.dueDate ? `<span class="meta" style="${overdue ? "color:var(--danger);font-weight:700;" : ""}">${fmtDate(t.dueDate)}</span>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function bucketColumnHtml(bucket, tasks, isVirtual) {
+    return `
+      <div class="bucket-column">
+        <div class="bucket-header">
+          ${isVirtual
+            ? `<span class="bucket-name">${escapeHtml(bucket.name)}</span>`
+            : `<span class="bucket-name entry-title" data-edit-bucket="${bucket.id}">${escapeHtml(bucket.name)}</span>
+               <button class="icon-btn" data-del-bucket="${bucket.id}">🗑</button>`
+          }
+        </div>
+        <div class="bucket-tasks" data-bucket-drop="${bucket.id}">
+          ${tasks.length === 0 ? '<div class="empty-hint">Keine Aufgaben</div>' : tasks.map(taskCardHtml).join("")}
+        </div>
+        ${isVirtual ? "" : `
+        <form class="bucket-quickadd" data-bucket-quickadd="${bucket.id}">
+          <input type="text" name="title" placeholder="+ Aufgabe hinzufügen" autocomplete="off">
+        </form>`}
+      </div>`;
   }
 
   root.innerHTML = `
@@ -2288,39 +2409,21 @@ function renderTasks(root) {
       </div>
     </div>
     <div class="card">
-      <h3>Neue Aufgabe</h3>
-      <form id="task-form" class="form-inline">
-        <div class="field"><label>Titel</label><input name="title" required></div>
-        <div class="field"><label>Projekt</label><select name="projectId">${projectOptions}</select></div>
-        <div class="field"><label>Priorität</label>
-          <select name="priority"><option value="low">Niedrig</option><option value="medium" selected>Mittel</option><option value="high">Hoch</option></select>
+      <div class="board-toolbar">
+        <label for="board-project-select">Projekt-Board:</label>
+        <select id="board-project-select">
+          ${activeProjects.map(p => `<option value="${p.id}" ${p.id === tasksBoardProjectId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="board-scroll" id="board-scroll">
+        ${boardBuckets.map(b => bucketColumnHtml(b, boardTasks.filter(t => t.bucketId === b.id))).join("")}
+        ${unassignedTasks.length ? bucketColumnHtml({ id: "__unassigned", name: "Ohne Bucket" }, unassignedTasks, true) : ""}
+        <div class="add-bucket-column">
+          <form id="add-bucket-form">
+            <input type="text" name="name" class="add-bucket-input" placeholder="+ Neuer Bucket" autocomplete="off" required>
+          </form>
         </div>
-        <div class="field"><label>Fällig</label><input type="date" name="dueDate"></div>
-        <button class="btn primary" type="submit">Hinzufügen</button>
-      </form>
-    </div>
-    <div class="card">
-      <h3>Offene Aufgaben (${openTasks.length})</h3>
-      ${openTasks.length === 0 ? '<div class="empty-hint">Keine offenen Aufgaben.</div>' : `
-      <ul class="list">
-        ${openTasks.map(t => `
-          <li>
-            <input type="checkbox" data-toggle-task="${t.id}">
-            <span class="entry-title" style="flex:1;" data-edit-task="${t.id}">${escapeHtml(t.title)}</span>
-            <span class="badge ${t.priority}">${{ low: "Niedrig", medium: "Mittel", high: "Hoch" }[t.priority]}</span>
-            <span class="meta">${escapeHtml(projectName(t.projectId))}</span>
-            <span class="meta ${t.dueDate && t.dueDate < today ? "" : ""}" style="${t.dueDate && t.dueDate < today ? "color:var(--danger);font-weight:700;" : ""}">${t.dueDate ? fmtDate(t.dueDate) : ""}</span>
-            <button class="icon-btn" data-del-task="${t.id}">🗑</button>
-          </li>`).join("")}
-      </ul>`}
-    </div>
-    <div class="card">
-      <h3>Erledigt (${doneTasks.length})</h3>
-      ${doneTasks.length === 0 ? '<div class="empty-hint">Noch nichts erledigt.</div>' : `
-      <ul class="list">
-        ${doneTasks.slice(-15).reverse().map(t => `
-          <li><input type="checkbox" checked data-toggle-task="${t.id}"><span class="entry-title" style="flex:1; text-decoration:line-through; color:var(--text-muted);" data-edit-task="${t.id}">${escapeHtml(t.title)}</span><button class="icon-btn" data-del-task="${t.id}">🗑</button></li>`).join("")}
-      </ul>`}
+      </div>
     </div>
   `;
 
@@ -2329,37 +2432,83 @@ function renderTasks(root) {
     const f = new FormData(e.target);
     const name = f.get("name")?.trim();
     if (!name) return;
-    data.projects.push({ id: uid(), name, color: f.get("color"), archived: false });
+    const project = { id: uid(), name, color: f.get("color"), archived: false };
+    data.projects.push(project);
+    data.buckets.push({ id: uid(), projectId: project.id, name: "Zu erledigen", order: 0 });
+    tasksBoardProjectId = project.id;
     e.target.reset();
     scheduleSave("tasks"); renderTasks(root);
   });
   root.querySelectorAll("[data-del-project]").forEach(btn => btn.addEventListener("click", () => {
-    data.projects = data.projects.filter(p => p.id !== btn.getAttribute("data-del-project"));
+    const id = btn.getAttribute("data-del-project");
+    data.projects = data.projects.filter(p => p.id !== id);
+    data.buckets = data.buckets.filter(b => b.projectId !== id);
+    data.tasks = data.tasks.filter(t => t.projectId !== id);
+    if (tasksBoardProjectId === id) tasksBoardProjectId = null;
     scheduleSave("tasks"); renderTasks(root);
   }));
-  root.querySelector("#task-form").addEventListener("submit", e => {
+  root.querySelector("#board-project-select").addEventListener("change", e => {
+    tasksBoardProjectId = e.target.value;
+    renderTasks(root);
+  });
+  root.querySelector("#add-bucket-form").addEventListener("submit", e => {
     e.preventDefault();
-    const f = new FormData(e.target);
-    data.tasks.push({
-      id: uid(), title: f.get("title"), projectId: f.get("projectId"),
-      priority: f.get("priority"), dueDate: f.get("dueDate") || null,
-      done: false, createdAt: todayISO(), notes: ""
-    });
-    e.target.reset();
+    const name = new FormData(e.target).get("name").trim();
+    if (!name) return;
+    const maxOrder = boardBuckets.reduce((max, b) => Math.max(max, b.order || 0), 0);
+    data.buckets.push({ id: uid(), projectId: tasksBoardProjectId, name, order: maxOrder + 1 });
     scheduleSave("tasks"); renderTasks(root);
   });
+  root.querySelectorAll("[data-bucket-quickadd]").forEach(form => form.addEventListener("submit", e => {
+    e.preventDefault();
+    const bucketId = form.getAttribute("data-bucket-quickadd");
+    const input = form.querySelector('[name="title"]');
+    const title = input.value.trim();
+    if (!title) return;
+    data.tasks.push({
+      id: uid(), title, projectId: tasksBoardProjectId, bucketId,
+      priority: "medium", dueDate: null, done: false, createdAt: todayISO(), notes: ""
+    });
+    scheduleSave("tasks"); renderTasks(root);
+  }));
   root.querySelectorAll("[data-toggle-task]").forEach(cb => cb.addEventListener("change", () => {
     const t = data.tasks.find(t => t.id === cb.getAttribute("data-toggle-task"));
     if (t) t.done = cb.checked;
     scheduleSave("tasks"); renderTasks(root);
   }));
-  root.querySelectorAll("[data-del-task]").forEach(btn => btn.addEventListener("click", () => {
-    data.tasks = data.tasks.filter(t => t.id !== btn.getAttribute("data-del-task"));
-    scheduleSave("tasks"); renderTasks(root);
-  }));
   root.querySelectorAll("[data-edit-task]").forEach(el => el.addEventListener("click", () => {
     openTaskModal(el.getAttribute("data-edit-task"));
   }));
+  root.querySelectorAll("[data-edit-bucket]").forEach(el => el.addEventListener("click", () => {
+    openBucketModal(el.getAttribute("data-edit-bucket"));
+  }));
+  root.querySelectorAll("[data-del-bucket]").forEach(btn => btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-del-bucket");
+    data.buckets = data.buckets.filter(b => b.id !== id);
+    data.tasks.forEach(t => { if (t.bucketId === id) t.bucketId = null; });
+    scheduleSave("tasks"); renderTasks(root);
+  }));
+
+  root.querySelectorAll("[data-drag-task]").forEach(card => {
+    card.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", card.getAttribute("data-drag-task"));
+      e.dataTransfer.effectAllowed = "move";
+    });
+  });
+  root.querySelectorAll("[data-bucket-drop]").forEach(zone => {
+    zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("drag-over"); });
+    zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const taskId = e.dataTransfer.getData("text/plain");
+      const t = data.tasks.find(t => t.id === taskId);
+      if (!t) return;
+      const targetBucketId = zone.getAttribute("data-bucket-drop");
+      t.bucketId = targetBucketId === "__unassigned" ? null : targetBucketId;
+      scheduleSave("tasks"); renderTasks(root);
+    });
+  });
 }
 
 /* =========================================================================

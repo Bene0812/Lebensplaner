@@ -41,13 +41,13 @@ Die Datendateien (`data/*.json`) werden beim ersten Speichern automatisch im Dat
 | Dashboard | – | Aggregierter Tagesüberblick über alle Module |
 | Ziele & Vision | `data/goals.json` | Ziele (1/5/10 Jahre), Lebensbereiche |
 | Kalender & Zeitplanung | `data/calendar.json` | Termine, Deadlines, wiederkehrende Events (Monatsansicht + Agenda) |
-| Aufgaben & Projekte | `data/tasks.json` | To-dos mit Priorität, Fälligkeit, Projekten |
+| Aufgaben & Projekte | `data/tasks.json` | Bucket-Board pro Projekt (wie Microsoft Planner): Buckets per Drag & Drop oder Bearbeiten-Modal, Aufgaben mit Priorität und Fälligkeit |
 | Gewohnheiten & Routinen | `data/habits.json` | Habit-Tracker mit Streaks (täglich) bzw. Wochenzielen |
 | Finanzen | `data/finances.json` | Budgets, Ausgaben, Sparziele mit Fortschrittsbalken |
 | Journal & Reflexion | `data/journal.json` | Tages-/Wochen-/Monatsreview-Einträge mit Stimmung |
 | KI-Assistent | – (nur `localStorage`) | Chat, der Freitext-Eingaben wie "15.10 Zahnarzt" per Offline-Regelwerk (kein externer KI-Call) in Kalender-/Aufgaben-/Gewohnheiten-Einträge umwandelt |
 | Gmail | – (nur `localStorage`) | Öffnet eines von 3 Gmail-Konten als Popup-Fenster (`window.open`, kein iframe/OAuth); Kontonamen frei umbenennbar |
-| Spanisch lernen | – (nur `localStorage`) | "Vale" – Chat-Sprachpartnerin für kolumbianisches Spanisch mit lokalem Offline-KI-Modell (WebLLM, kein API-Key); Chat, Vokabelheft, Quiz, Rollenspiel |
+| Spanisch lernen | – (nur `localStorage`) | *Vorübergehend deaktiviert im Menü (durchgestrichen, "wird gewartet") wegen Qualitätsproblemen des lokalen 1B-Modells.* "Vale" – Chat-Sprachpartnerin für kolumbianisches Spanisch mit lokalem Offline-KI-Modell (WebLLM, kein API-Key); Chat, Vokabelheft, Quiz, Rollenspiel |
 
 Bewusst weggelassen: Gesundheit/Fitness-Tracking, Beziehungen/Soziales, Lernen & Wachstum.
 
